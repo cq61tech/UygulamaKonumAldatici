@@ -51,7 +51,8 @@ fun HomeScreen(modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .padding(bottom = LocalDockPadding.current),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         Appear(0) { BannerCard() }

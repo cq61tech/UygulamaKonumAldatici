@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -38,6 +39,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -70,11 +72,22 @@ data class AppItem(
 class AppsState(private val settings: AppSettings) {
     var apps by mutableStateOf<List<AppItem>?>(null)
     var query by mutableStateOf("")
+
     var saved by mutableStateOf(settings.loadSelectedApps())
         private set
+    var savedCountries by mutableStateOf(settings.loadAppCountries())
+        private set
+
     val selected = mutableStateListOf<String>().also { it.addAll(saved) }
 
-    val dirty: Boolean get() = selected.toSet() != saved
+    /** Uygulama başına ülke (yoksa varsayılan ülke kullanılır) */
+    val appCountry = mutableStateMapOf<String, String>().also { it.putAll(savedCountries) }
+
+    private fun effectiveCountries(): Map<String, String> =
+        appCountry.filterKeys { it in selected }
+
+    val dirty: Boolean
+        get() = selected.toSet() != saved || effectiveCountries() != savedCountries
 
     fun toggle(pkg: String) {
         if (!selected.remove(pkg)) selected.add(pkg)
@@ -82,7 +95,9 @@ class AppsState(private val settings: AppSettings) {
 
     fun save() {
         saved = selected.toSet()
+        savedCountries = effectiveCountries()
         settings.saveSelectedApps(saved)
+        settings.saveAppCountries(savedCountries)
     }
 }
 
@@ -129,8 +144,11 @@ private fun loadApps(ctx: Context): List<AppItem> {
 }
 
 @Composable
-fun AppsScreen(state: AppsState, modifier: Modifier = Modifier) {
+fun AppsScreen(state: AppsState, settings: AppSettings, modifier: Modifier = Modifier) {
     val ctx = LocalContext.current
+    val dockPad = LocalDockPadding.current
+    var sheetPkg by remember { mutableStateOf<String?>(null) }
+    val defaultCountry = Countries.byCode(settings.defaultCountry)
 
     LaunchedEffect(Unit) {
         if (state.apps == null) {
@@ -176,7 +194,13 @@ fun AppsScreen(state: AppsState, modifier: Modifier = Modifier) {
                 text = stringResource(R.string.apps_hidden_note),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 2.dp),
+                modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 2.dp),
+            )
+            Text(
+                text = stringResource(R.string.apps_country_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 2.dp, bottom = 2.dp),
             )
 
             if (filtered == null) {
@@ -188,7 +212,12 @@ fun AppsScreen(state: AppsState, modifier: Modifier = Modifier) {
                 val rest = filtered.filter { !it.featured }
                 LazyColumn(
                     modifier = Modifier.weight(1f),
-                    contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 96.dp),
+                    contentPadding = PaddingValues(
+                        start = 12.dp,
+                        end = 12.dp,
+                        top = 8.dp,
+                        bottom = dockPad + 72.dp,
+                    ),
                 ) {
                     if (filtered.isEmpty()) {
                         item(key = "empty") {
@@ -206,13 +235,27 @@ fun AppsScreen(state: AppsState, modifier: Modifier = Modifier) {
                     if (featured.isNotEmpty()) {
                         item(key = "h_featured") { SectionHeader(stringResource(R.string.apps_featured)) }
                         items(featured, key = { it.pkg }) { app ->
-                            AppRow(app, app.pkg in state.selected) { state.toggle(app.pkg) }
+                            AppRow(
+                                app = app,
+                                selected = app.pkg in state.selected,
+                                country = Countries.byCode(state.appCountry[app.pkg] ?: settings.defaultCountry),
+                                overridden = app.pkg in state.appCountry,
+                                onToggle = { state.toggle(app.pkg) },
+                                onCountryClick = { sheetPkg = app.pkg },
+                            )
                         }
                     }
                     if (rest.isNotEmpty()) {
                         item(key = "h_all") { SectionHeader(stringResource(R.string.apps_all)) }
                         items(rest, key = { it.pkg }) { app ->
-                            AppRow(app, app.pkg in state.selected) { state.toggle(app.pkg) }
+                            AppRow(
+                                app = app,
+                                selected = app.pkg in state.selected,
+                                country = Countries.byCode(state.appCountry[app.pkg] ?: settings.defaultCountry),
+                                overridden = app.pkg in state.appCountry,
+                                onToggle = { state.toggle(app.pkg) },
+                                onCountryClick = { sheetPkg = app.pkg },
+                            )
                         }
                     }
                 }
@@ -225,7 +268,7 @@ fun AppsScreen(state: AppsState, modifier: Modifier = Modifier) {
             exit = scaleOut() + fadeOut(),
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(16.dp),
+                .padding(end = 16.dp, bottom = dockPad + 8.dp),
         ) {
             ExtendedFloatingActionButton(
                 onClick = {
@@ -236,6 +279,20 @@ fun AppsScreen(state: AppsState, modifier: Modifier = Modifier) {
                 text = { Text(stringResource(R.string.apps_save, state.selected.size)) },
             )
         }
+    }
+
+    sheetPkg?.let { pkg ->
+        CountrySheet(
+            selectedCode = state.appCountry[pkg],
+            defaultCountry = defaultCountry,
+            onPick = { code ->
+                if (code == null) state.appCountry.remove(pkg) else state.appCountry[pkg] = code
+                // Ülkesi seçilen uygulama otomatik seçili olsun
+                if (code != null && pkg !in state.selected) state.selected.add(pkg)
+                sheetPkg = null
+            },
+            onDismiss = { sheetPkg = null },
+        )
     }
 }
 
@@ -251,7 +308,14 @@ private fun SectionHeader(text: String) {
 }
 
 @Composable
-private fun AppRow(app: AppItem, selected: Boolean, onToggle: () -> Unit) {
+private fun AppRow(
+    app: AppItem,
+    selected: Boolean,
+    country: Country,
+    overridden: Boolean,
+    onToggle: () -> Unit,
+    onCountryClick: () -> Unit,
+) {
     val cs = MaterialTheme.colorScheme
     val bg by animateColorAsState(
         targetValue = if (selected) cs.primaryContainer else cs.primaryContainer.copy(alpha = 0f),
@@ -266,7 +330,7 @@ private fun AppRow(app: AppItem, selected: Boolean, onToggle: () -> Unit) {
             .clickable(onClick = onToggle)
             .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(14.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Image(
             bitmap = app.icon,
@@ -289,6 +353,21 @@ private fun AppRow(app: AppItem, selected: Boolean, onToggle: () -> Unit) {
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
+        }
+        if (selected) {
+            Box(
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .background(if (overridden) cs.primary else cs.surfaceContainerHighest)
+                    .clickable(onClick = onCountryClick)
+                    .padding(horizontal = 10.dp, vertical = 6.dp),
+            ) {
+                Text(
+                    text = "${country.flag} ${country.code}",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = if (overridden) cs.onPrimary else cs.onSurface,
+                )
+            }
         }
         Checkbox(checked = selected, onCheckedChange = null)
     }

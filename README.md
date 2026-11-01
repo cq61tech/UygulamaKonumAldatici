@@ -3,4 +3,4 @@
 Root + LSPosed ile seçilen uygulamalara başka bir ülkede görünme (konum, SIM, saat dilimi, uygulama bazlı VPN).
 Açık kaynak, Apache-2.0.
 
-Durum: Aşama 2 (arayüz).
+Durum: Aşama 2.5 (arayüz revizyonu: dock, şekil animasyonu, ülke seçimi, özel renkler).

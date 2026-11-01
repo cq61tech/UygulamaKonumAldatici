@@ -2,6 +2,7 @@ package io.github.cq61tech.konumaldatici
 
 import android.content.Context
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 
@@ -20,7 +21,15 @@ class AppSettings(context: Context) {
     var dynamicColor by mutableStateOf(sp.getBoolean("dynamic", true))
         private set
 
+    /** -1 = varsayılan gökyüzü paleti, 0..360 = seçilen ton */
+    var seedHue by mutableFloatStateOf(sp.getFloat("seed_hue", -1f))
+        private set
+
     var hookLog by mutableStateOf(sp.getBoolean("hook_log", true))
+        private set
+
+    /** VPN ve konum profili için varsayılan ülke (ülke kodu) */
+    var defaultCountry by mutableStateOf(sp.getString("country", "US") ?: "US")
         private set
 
     fun updateTheme(mode: ThemeMode) {
@@ -33,9 +42,19 @@ class AppSettings(context: Context) {
         sp.edit().putBoolean("dynamic", value).apply()
     }
 
+    fun updateSeedHue(value: Float) {
+        seedHue = value
+        sp.edit().putFloat("seed_hue", value).apply()
+    }
+
     fun updateHookLog(value: Boolean) {
         hookLog = value
         sp.edit().putBoolean("hook_log", value).apply()
+    }
+
+    fun updateDefaultCountry(code: String) {
+        defaultCountry = code
+        sp.edit().putString("country", code).apply()
     }
 
     fun loadSelectedApps(): Set<String> =
@@ -43,5 +62,18 @@ class AppSettings(context: Context) {
 
     fun saveSelectedApps(apps: Set<String>) {
         sp.edit().putStringSet("selected_apps", HashSet(apps)).apply()
+    }
+
+    /** Uygulama başına ülke seçimi: "paket|ÜLKE" biçiminde saklanır. */
+    fun loadAppCountries(): Map<String, String> =
+        (sp.getStringSet("app_countries", emptySet()) ?: emptySet())
+            .mapNotNull { entry ->
+                val i = entry.lastIndexOf('|')
+                if (i <= 0) null else entry.substring(0, i) to entry.substring(i + 1)
+            }
+            .toMap()
+
+    fun saveAppCountries(map: Map<String, String>) {
+        sp.edit().putStringSet("app_countries", HashSet(map.map { "${it.key}|${it.value}" })).apply()
     }
 }

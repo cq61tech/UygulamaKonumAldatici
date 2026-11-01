@@ -8,7 +8,6 @@ import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
@@ -16,7 +15,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.background
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -34,6 +33,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -47,32 +48,40 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.floor
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 enum class VpnState { Off, Connecting, On }
 
 @Composable
-fun VpnScreen(modifier: Modifier = Modifier) {
+fun VpnScreen(settings: AppSettings, modifier: Modifier = Modifier) {
     var state by remember { mutableStateOf(VpnState.Off) }
     var provider by remember { mutableIntStateOf(0) }
+    var showCountrySheet by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    val lang = LocalConfiguration.current.locales[0].language
+    val country = Countries.byCode(settings.defaultCountry)
 
     Column(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .padding(bottom = LocalDockPadding.current),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(4.dp))
 
         Appear(0) {
             ConnectButton(state) {
@@ -80,7 +89,7 @@ fun VpnScreen(modifier: Modifier = Modifier) {
                     VpnState.Off -> {
                         state = VpnState.Connecting
                         scope.launch {
-                            delay(1700)
+                            delay(6000)
                             if (state == VpnState.Connecting) state = VpnState.On
                         }
                     }
@@ -108,6 +117,47 @@ fun VpnScreen(modifier: Modifier = Modifier) {
         }
 
         Appear(1) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(28.dp))
+                    .clickable { showCountrySheet = true },
+                shape = RoundedCornerShape(28.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                ),
+            ) {
+                Row(
+                    Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    Text(country.flag, fontSize = 40.sp)
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            stringResource(R.string.vpn_country_title),
+                            style = MaterialTheme.typography.labelLarge,
+                        )
+                        Text(
+                            country.displayName(lang),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Text(
+                            "${country.operatorName} · ${country.timezone}",
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                        Text(
+                            stringResource(R.string.vpn_country_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                }
+            }
+        }
+
+        Appear(2) {
             SectionCard(stringResource(R.string.vpn_provider)) {
                 val providers = listOf(
                     R.string.provider_proton,
@@ -129,9 +179,9 @@ fun VpnScreen(modifier: Modifier = Modifier) {
             }
         }
 
-        Appear(2) {
+        Appear(3) {
             SectionCard(stringResource(R.string.nav_vpn)) {
-                InfoRow(stringResource(R.string.vpn_info_country), "—")
+                InfoRow(stringResource(R.string.vpn_info_country), "${country.flag} ${country.displayName(lang)}")
                 InfoRow(stringResource(R.string.vpn_info_ip), "—")
                 InfoRow(stringResource(R.string.vpn_info_protocol), "WireGuard")
             }
@@ -143,6 +193,18 @@ fun VpnScreen(modifier: Modifier = Modifier) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 12.dp),
+        )
+    }
+
+    if (showCountrySheet) {
+        CountrySheet(
+            selectedCode = settings.defaultCountry,
+            defaultCountry = null,
+            onPick = { code ->
+                if (code != null) settings.updateDefaultCountry(code)
+                showCountrySheet = false
+            },
+            onDismiss = { showCountrySheet = false },
         )
     }
 }
@@ -165,29 +227,31 @@ private fun InfoRow(label: String, value: String) {
 }
 
 /**
- * Büyük yuvarlak bağlan düğmesi.
- * Kapalıyken daire, bağlanırken dönen yuvarlatılmış kare, bağlıyken "nefes alan" kare.
- * (Expressive hissi için şekil dönüşümü yay animasyonuyla yapılır.)
+ * Büyük bağlan düğmesi.
+ * Kapalı: daire. Bağlanıyor: Soft Burst → Cookie 9 → Pentagon → Pill → Sunny → Cookie 4 → Oval
+ * şekilleri arasında dönüşerek döner. Bağlı: nefes alan kurabiye şekli.
  */
 @Composable
 private fun ConnectButton(state: VpnState, onClick: () -> Unit) {
     val cs = MaterialTheme.colorScheme
 
-    val cornerPercent by animateIntAsState(
-        targetValue = when (state) {
-            VpnState.Off -> 50
-            VpnState.Connecting -> 30
-            VpnState.On -> 40
-        },
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow,
-        ),
-        label = "corner",
+    val soft = spring<Float>(dampingRatio = 0.8f, stiffness = Spring.StiffnessLow)
+    val onW = animateFloatAsState(
+        targetValue = if (state == VpnState.On) 1f else 0f,
+        animationSpec = soft,
+        label = "on_weight",
     )
-    val shape = RoundedCornerShape(cornerPercent.coerceIn(0, 100))
-
-    val container by animateColorAsState(
+    val connW = animateFloatAsState(
+        targetValue = if (state == VpnState.Connecting) 1f else 0f,
+        animationSpec = soft,
+        label = "connecting_weight",
+    )
+    val haloAlpha = animateFloatAsState(
+        targetValue = if (state == VpnState.On) 0.18f else 0f,
+        animationSpec = tween(600),
+        label = "halo",
+    )
+    val container = animateColorAsState(
         targetValue = if (state == VpnState.On) cs.primary else cs.surfaceContainerHighest,
         animationSpec = tween(450),
         label = "container",
@@ -197,22 +261,23 @@ private fun ConnectButton(state: VpnState, onClick: () -> Unit) {
         animationSpec = tween(450),
         label = "on_container",
     )
-    val haloAlpha = animateFloatAsState(
-        targetValue = if (state == VpnState.On) 0.18f else 0f,
-        animationSpec = tween(600),
-        label = "halo",
-    )
 
     val inf = rememberInfiniteTransition(label = "inf")
+    val cycle = inf.animateFloat(
+        initialValue = 0f,
+        targetValue = 7f,
+        animationSpec = infiniteRepeatable(tween(7 * 850, easing = LinearEasing)),
+        label = "cycle",
+    )
     val spin = inf.animateFloat(
         initialValue = 0f,
         targetValue = 360f,
-        animationSpec = infiniteRepeatable(tween(2600, easing = LinearEasing)),
+        animationSpec = infiniteRepeatable(tween(9000, easing = LinearEasing)),
         label = "spin",
     )
     val breathe = inf.animateFloat(
         initialValue = 1f,
-        targetValue = 1.06f,
+        targetValue = 1.05f,
         animationSpec = infiniteRepeatable(
             tween(1900, easing = FastOutSlowInEasing),
             RepeatMode.Reverse,
@@ -231,6 +296,11 @@ private fun ConnectButton(state: VpnState, onClick: () -> Unit) {
         label = "press",
     )
 
+    val base = remember { FloatArray(ShapeBank.N) }
+    val cyc = remember { FloatArray(ShapeBank.N) }
+    val out = remember { FloatArray(ShapeBank.N) }
+    val path = remember { Path() }
+
     Box(
         modifier = Modifier
             .size(250.dp)
@@ -243,24 +313,44 @@ private fun ConnectButton(state: VpnState, onClick: () -> Unit) {
             .clickable(interactionSource = interaction, indication = null, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        // Dış hale
-        Box(
-            Modifier
-                .fillMaxSize()
-                .graphicsLayer { alpha = haloAlpha.value }
-                .clip(shape)
-                .background(cs.primary)
-        )
-        // Ana gövde (bağlanırken döner)
-        Box(
-            Modifier
-                .size(196.dp)
-                .graphicsLayer {
-                    rotationZ = if (state == VpnState.Connecting) spin.value else 0f
+        Canvas(Modifier.fillMaxSize()) {
+            val half = size.minDimension / 2f
+            val cx = size.width / 2f
+            val cy = size.height / 2f
+
+            // Taban: daire ↔ kurabiye (bağlıyken)
+            ShapeBank.mix(ShapeBank.circle, ShapeBank.cookie9, onW.value, base)
+
+            // Bağlanırken şekil dizisi arasında dönüşüm
+            val cw = connW.value
+            var rotation = 0f
+            if (cw > 0.001f) {
+                val t = cycle.value
+                val i0 = floor(t).toInt() % 7
+                val frac = t - floor(t)
+                val k = ((frac - 0.3f) / 0.7f).coerceIn(0f, 1f)
+                val eased = k * k * (3f - 2f * k)
+                ShapeBank.mix(
+                    ShapeBank.sequence[i0],
+                    ShapeBank.sequence[(i0 + 1) % 7],
+                    eased,
+                    cyc,
+                )
+                ShapeBank.mix(base, cyc, cw, out)
+                rotation = spin.value * cw
+            } else {
+                ShapeBank.copy(base, out)
+            }
+
+            withTransform({ rotate(rotation, androidx.compose.ui.geometry.Offset(cx, cy)) }) {
+                val ha = haloAlpha.value
+                if (ha > 0.001f) {
+                    drawPath(ShapeBank.path(out, cx, cy, half * 0.98f, path), cs.primary.copy(alpha = ha))
                 }
-                .clip(shape)
-                .background(container)
-        )
+                drawPath(ShapeBank.path(out, cx, cy, half * 0.78f, path), container.value)
+            }
+        }
+
         AnimatedContent(
             targetState = state,
             transitionSpec = { fadeIn(tween(250)) togetherWith fadeOut(tween(150)) },

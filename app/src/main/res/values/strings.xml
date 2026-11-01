@@ -73,4 +73,13 @@
     <string name="settings_about">Hakkında</string>
     <string name="about_license">Lisans: Apache-2.0</string>
     <string name="about_github">GitHub\'da aç</string>
+
+    <string name="vpn_country_title">Hedef ülke</string>
+    <string name="vpn_country_desc">VPN ve konum profili birlikte değişir</string>
+    <string name="country_sheet_title">Ülke seç</string>
+    <string name="country_search">Ülke ara</string>
+    <string name="country_use_default">Varsayılan ülkeyi kullan</string>
+    <string name="apps_country_hint">Bayrağa dokunarak o uygulamanın ülkesini değiştir</string>
+    <string name="settings_palette">Renk paleti</string>
+    <string name="palette_hue">Özel ton</string>
 </resources>

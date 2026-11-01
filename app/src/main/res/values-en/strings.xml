@@ -73,4 +73,13 @@
     <string name="settings_about">About</string>
     <string name="about_license">License: Apache-2.0</string>
     <string name="about_github">Open on GitHub</string>
+
+    <string name="vpn_country_title">Target country</string>
+    <string name="vpn_country_desc">VPN and location profile change together</string>
+    <string name="country_sheet_title">Pick a country</string>
+    <string name="country_search">Search countries</string>
+    <string name="country_use_default">Use the default country</string>
+    <string name="apps_country_hint">Tap a flag to change that app\'s country</string>
+    <string name="settings_palette">Color palette</string>
+    <string name="palette_hue">Custom hue</string>
 </resources>
