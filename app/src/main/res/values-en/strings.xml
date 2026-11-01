@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Location Spoofer</string>
+    <string name="stage1_ok">Stage 1: scaffold and build pipeline work ✓</string>
+</resources>

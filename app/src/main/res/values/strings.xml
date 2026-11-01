@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Konum Aldatıcı</string>
+    <string name="stage1_ok">Aşama 1: iskele ve derleme hattı çalışıyor ✓</string>
+</resources>
