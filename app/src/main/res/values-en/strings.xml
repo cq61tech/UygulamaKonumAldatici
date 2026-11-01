@@ -82,4 +82,14 @@
     <string name="apps_country_hint">Tap a flag to change that app\'s country</string>
     <string name="settings_palette">Color palette</string>
     <string name="palette_hue">Custom hue</string>
+
+    <string name="settings_dock">Dock</string>
+    <string name="dock_pill_title">Pill-shaped dock</string>
+    <string name="dock_pill_desc">When off, the dock becomes a flat bar fixed to the bottom of the screen.</string>
+    <string name="dock_options">Dock options</string>
+    <string name="dock_height">Height: %1$d dp</string>
+    <string name="dock_transparency">Transparency: %1$d%%</string>
+    <string name="dock_roundness">Roundness: %1$d%%</string>
+    <string name="dock_autohide">Hide while scrolling</string>
+    <string name="dock_autohide_desc">The dock slides away when you scroll down and comes back when you scroll up.</string>
 </resources>

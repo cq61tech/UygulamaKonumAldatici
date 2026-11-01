@@ -82,4 +82,14 @@
     <string name="apps_country_hint">Bayrağa dokunarak o uygulamanın ülkesini değiştir</string>
     <string name="settings_palette">Renk paleti</string>
     <string name="palette_hue">Özel ton</string>
+
+    <string name="settings_dock">Dock</string>
+    <string name="dock_pill_title">Hap biçimli dock</string>
+    <string name="dock_pill_desc">Kapalıyken dock, ekranın altına oturan düz bir çubuk olur.</string>
+    <string name="dock_options">Dock seçenekleri</string>
+    <string name="dock_height">Yükseklik: %1$d dp</string>
+    <string name="dock_transparency">Şeffaflık: %%%1$d</string>
+    <string name="dock_roundness">Yuvarlaklık: %%%1$d</string>
+    <string name="dock_autohide">Kaydırırken gizle</string>
+    <string name="dock_autohide_desc">Aşağı kaydırınca dock gizlenir, yukarı kaydırınca geri gelir.</string>
 </resources>

@@ -43,7 +43,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,17 +57,50 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.floor
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 enum class VpnState { Off, Connecting, On }
 
+/**
+ * Aşama 4'e kadar kullanılan SİMÜLASYON. Gerçek bir tünel kurmaz.
+ * Durum ekranın dışında tutulur; sekme değiştirince ya da ekran yeniden çizilince sıfırlanmaz.
+ */
+object VpnSim {
+    var state by mutableStateOf(VpnState.Off)
+        private set
+
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private var job: Job? = null
+
+    fun toggle() {
+        when (state) {
+            VpnState.Off -> {
+                state = VpnState.Connecting
+                job?.cancel()
+                job = scope.launch {
+                    delay(6000)
+                    state = VpnState.On
+                }
+            }
+            VpnState.Connecting -> {
+                job?.cancel()
+                state = VpnState.Off
+            }
+            VpnState.On -> state = VpnState.Off
+        }
+    }
+}
+
 @Composable
 fun VpnScreen(settings: AppSettings, modifier: Modifier = Modifier) {
-    var state by remember { mutableStateOf(VpnState.Off) }
+    val state = VpnSim.state
     var provider by remember { mutableIntStateOf(0) }
     var showCountrySheet by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
     val lang = LocalConfiguration.current.locales[0].language
     val country = Countries.byCode(settings.defaultCountry)
 
@@ -84,18 +116,7 @@ fun VpnScreen(settings: AppSettings, modifier: Modifier = Modifier) {
         Spacer(Modifier.height(4.dp))
 
         Appear(0) {
-            ConnectButton(state) {
-                when (state) {
-                    VpnState.Off -> {
-                        state = VpnState.Connecting
-                        scope.launch {
-                            delay(6000)
-                            if (state == VpnState.Connecting) state = VpnState.On
-                        }
-                    }
-                    VpnState.Connecting, VpnState.On -> state = VpnState.Off
-                }
-            }
+            ConnectButton(state) { VpnSim.toggle() }
         }
 
         AnimatedContent(

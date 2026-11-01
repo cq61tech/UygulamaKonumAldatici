@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Build
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -21,9 +22,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -39,12 +42,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.os.LocaleListCompat
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
 private const val GITHUB_URL = "https://github.com/cq61tech/UygulamaKonumAldatici"
 
@@ -157,6 +162,82 @@ fun SettingsScreen(settings: AppSettings, modifier: Modifier = Modifier) {
         }
 
         Appear(1) {
+            SectionCard(stringResource(R.string.settings_dock)) {
+                SwitchRow(
+                    title = stringResource(R.string.dock_pill_title),
+                    desc = stringResource(R.string.dock_pill_desc),
+                    checked = settings.dockPill,
+                    enabled = true,
+                    onChange = { settings.updateDockPill(it) },
+                )
+
+                // Alt ayar: dock seçenekleri
+                var expanded by remember { mutableStateOf(false) }
+                val arrow by animateFloatAsState(
+                    targetValue = if (expanded) 180f else 0f,
+                    label = "dock_options_arrow",
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .clickable { expanded = !expanded }
+                        .padding(top = 16.dp, bottom = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = stringResource(R.string.dock_options),
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Icon(
+                        imageVector = Icons.Filled.KeyboardArrowDown,
+                        contentDescription = null,
+                        modifier = Modifier.rotate(arrow),
+                    )
+                }
+                AnimatedVisibility(visible = expanded) {
+                    Column {
+                        LabeledSlider(
+                            label = stringResource(R.string.dock_height, settings.dockHeight),
+                            value = settings.dockHeight.toFloat(),
+                            range = 56f..88f,
+                            steps = 7,
+                            onChange = { settings.updateDockHeight(it.roundToInt()) },
+                        )
+                        LabeledSlider(
+                            label = stringResource(
+                                R.string.dock_transparency,
+                                (settings.dockTransparency * 100f).roundToInt(),
+                            ),
+                            value = settings.dockTransparency * 100f,
+                            range = 0f..60f,
+                            steps = 0,
+                            onChange = { settings.updateDockTransparency(it / 100f) },
+                        )
+                        LabeledSlider(
+                            label = stringResource(
+                                R.string.dock_roundness,
+                                (settings.dockRoundness * 100f).roundToInt(),
+                            ),
+                            value = settings.dockRoundness * 100f,
+                            range = 0f..100f,
+                            steps = 0,
+                            onChange = { settings.updateDockRoundness(it / 100f) },
+                        )
+                        SwitchRow(
+                            title = stringResource(R.string.dock_autohide),
+                            desc = stringResource(R.string.dock_autohide_desc),
+                            checked = settings.dockAutoHide,
+                            enabled = true,
+                            onChange = { settings.updateDockAutoHide(it) },
+                        )
+                    }
+                }
+            }
+        }
+
+        Appear(2) {
             SectionCard(stringResource(R.string.settings_language)) {
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -183,7 +264,7 @@ fun SettingsScreen(settings: AppSettings, modifier: Modifier = Modifier) {
             }
         }
 
-        Appear(2) {
+        Appear(3) {
             SectionCard(stringResource(R.string.settings_hooklog)) {
                 SwitchRow(
                     title = stringResource(R.string.settings_hooklog),
@@ -195,7 +276,7 @@ fun SettingsScreen(settings: AppSettings, modifier: Modifier = Modifier) {
             }
         }
 
-        Appear(3) {
+        Appear(4) {
             SectionCard(stringResource(R.string.settings_about)) {
                 Text(
                     text = stringResource(R.string.app_name) + "  •  " +
@@ -263,5 +344,28 @@ private fun SwitchRow(
             )
         }
         Switch(checked = checked, onCheckedChange = null, enabled = enabled)
+    }
+}
+
+@Composable
+private fun LabeledSlider(
+    label: String,
+    value: Float,
+    range: ClosedFloatingPointRange<Float>,
+    steps: Int,
+    onChange: (Float) -> Unit,
+) {
+    Column(Modifier.padding(top = 8.dp)) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Slider(
+            value = value,
+            onValueChange = onChange,
+            valueRange = range,
+            steps = steps,
+        )
     }
 }

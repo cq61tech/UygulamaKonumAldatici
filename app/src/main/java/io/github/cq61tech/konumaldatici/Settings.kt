@@ -3,6 +3,7 @@ package io.github.cq61tech.konumaldatici
 import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 
@@ -31,6 +32,50 @@ class AppSettings(context: Context) {
     /** VPN ve konum profili için varsayılan ülke (ülke kodu) */
     var defaultCountry by mutableStateOf(sp.getString("country", "US") ?: "US")
         private set
+
+    /** Dock: true = yüzen hap, false = ekranın altına oturan düz çubuk */
+    var dockPill by mutableStateOf(sp.getBoolean("dock_pill", true))
+        private set
+
+    /** Dock yüksekliği (dp) */
+    var dockHeight by mutableIntStateOf(sp.getInt("dock_height", 72))
+        private set
+
+    /** 0 = tam opak, 0.6 = en şeffaf */
+    var dockTransparency by mutableFloatStateOf(sp.getFloat("dock_transparency", 0f))
+        private set
+
+    /** 0 = köşeli, 1 = tam yuvarlak */
+    var dockRoundness by mutableFloatStateOf(sp.getFloat("dock_roundness", 1f))
+        private set
+
+    var dockAutoHide by mutableStateOf(sp.getBoolean("dock_autohide", false))
+        private set
+
+    fun updateDockPill(value: Boolean) {
+        dockPill = value
+        sp.edit().putBoolean("dock_pill", value).apply()
+    }
+
+    fun updateDockHeight(value: Int) {
+        dockHeight = value
+        sp.edit().putInt("dock_height", value).apply()
+    }
+
+    fun updateDockTransparency(value: Float) {
+        dockTransparency = value
+        sp.edit().putFloat("dock_transparency", value).apply()
+    }
+
+    fun updateDockRoundness(value: Float) {
+        dockRoundness = value
+        sp.edit().putFloat("dock_roundness", value).apply()
+    }
+
+    fun updateDockAutoHide(value: Boolean) {
+        dockAutoHide = value
+        sp.edit().putBoolean("dock_autohide", value).apply()
+    }
 
     fun updateTheme(mode: ThemeMode) {
         themeMode = mode

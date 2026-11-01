@@ -35,6 +35,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -45,6 +47,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -66,6 +69,11 @@ fun FloatingDock(
     items: List<DockItem>,
     selected: Int,
     onSelect: (Int) -> Unit,
+    pill: Boolean,
+    height: Dp,
+    transparency: Float,
+    roundness: Float,
+    bottomInset: Dp,
     modifier: Modifier = Modifier,
 ) {
     val cs = MaterialTheme.colorScheme
@@ -114,12 +122,17 @@ fun FloatingDock(
     )
     val activeTint = if (pressed) cs.onPrimaryContainer else cs.onSecondaryContainer
 
-    val pill = RoundedCornerShape(36.dp)
+    val barShape: Shape = if (pill) RoundedCornerShape(height / 2 * roundness) else RectangleShape
+    val indicatorShape = RoundedCornerShape((height - DockPad * 2) / 2 * roundness)
+    val barColor = (if (pill) cs.surfaceContainerHigh else cs.surfaceContainer)
+        .copy(alpha = 1f - transparency)
+    // Şeffaflaştıkça gölgeyi de azalt
+    val elevation = if (pill) 10.dp * (1f - transparency / 0.6f).coerceIn(0f, 1f) else 0.dp
 
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(72.dp)
+            .height(height + (if (pill) 0.dp else bottomInset))
             .onSizeChanged { widthPx = it.width }
             .pointerInput(slotW, n) {
                 awaitEachGesture {
@@ -170,45 +183,63 @@ fun FloatingDock(
                 }
             },
     ) {
-        // Hap şeklindeki zemin
+        // Zemin
         Box(
             Modifier
                 .matchParentSize()
-                .shadow(10.dp, pill, clip = false)
-                .background(cs.surfaceContainerHigh, pill)
-                .border(1.dp, cs.outlineVariant.copy(alpha = 0.45f), pill)
+                .shadow(elevation, barShape, clip = false)
+                .background(barColor, barShape)
+                .then(
+                    if (pill) Modifier.border(1.dp, cs.outlineVariant.copy(alpha = 0.45f), barShape)
+                    else Modifier
+                )
         )
-
-        // Kayan seçim baloncuğu
-        if (slotW > 0f) {
+        if (!pill) {
             Box(
                 Modifier
-                    .offset { IntOffset(left.value.roundToInt(), 0) }
-                    .width(with(density) { slotW.toDp() })
-                    .fillMaxHeight()
-                    .padding(vertical = DockPad)
-                    .graphicsLayer {
-                        scaleX = bubble.value
-                        scaleY = bubble.value
-                    }
-                    .background(indicatorColor, RoundedCornerShape(28.dp))
+                    .align(Alignment.TopCenter)
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(cs.outlineVariant.copy(alpha = 0.5f))
             )
         }
 
-        Row(
+        Box(
             Modifier
-                .fillMaxSize()
-                .padding(horizontal = DockPad)
+                .fillMaxWidth()
+                .height(height)
         ) {
-            items.forEachIndexed { i, item ->
-                DockSlot(
-                    item = item,
-                    active = i == hover,
-                    activeTint = activeTint,
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight(),
+            // Kayan seçim baloncuğu
+            if (slotW > 0f) {
+                Box(
+                    Modifier
+                        .offset { IntOffset(left.value.roundToInt(), 0) }
+                        .width(with(density) { slotW.toDp() })
+                        .fillMaxHeight()
+                        .padding(vertical = DockPad)
+                        .graphicsLayer {
+                            scaleX = bubble.value
+                            scaleY = bubble.value
+                        }
+                        .background(indicatorColor, indicatorShape)
                 )
+            }
+
+            Row(
+                Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = DockPad)
+            ) {
+                items.forEachIndexed { i, item ->
+                    DockSlot(
+                        item = item,
+                        active = i == hover,
+                        activeTint = activeTint,
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(),
+                    )
+                }
             }
         }
     }
