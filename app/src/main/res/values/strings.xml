@@ -1,5 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Konum Aldatıcı</string>
-    <string name="stage1_ok">Aşama 1: iskele ve derleme hattı çalışıyor ✓</string>
+
+    <string name="nav_home">Ana ekran</string>
+    <string name="nav_vpn">VPN</string>
+    <string name="nav_apps">Uygulamalar</string>
+    <string name="nav_settings">Ayarlar</string>
+
+    <string name="banner_text">Otoriter yasalar, daha fazla açık ve risk demektir</string>
+
+    <string name="home_status_title">Modül durumu</string>
+    <string name="home_status_pending">Henüz bağlanmadı</string>
+    <string name="home_status_pending_desc">Hook motoru Aşama 3\'te geliyor. Şimdilik sadece arayüz.</string>
+    <string name="home_version">Sürüm %1$s (%2$d)</string>
+    <string name="home_system_title">Sistem</string>
+
+    <string name="info_android">Android</string>
+    <string name="info_device">Cihaz</string>
+    <string name="info_abi">Mimari</string>
+    <string name="info_patch">Güvenlik yaması</string>
+    <string name="info_kernel">Çekirdek</string>
+    <string name="info_selinux">SELinux</string>
+    <string name="info_root">Root</string>
+    <string name="info_zygisk">Zygisk</string>
+    <string name="info_lsposed">LSPosed Manager</string>
+    <string name="val_unreadable">Okunamadı</string>
+    <string name="val_unknown">Bilinmiyor</string>
+    <string name="val_zygisk_hint">Modül çalışınca doğrulanır</string>
+    <string name="val_found">Bulundu</string>
+    <string name="val_not_found">Bulunamadı (gizli olabilir)</string>
+    <string name="root_none">Tespit edilemedi</string>
+    <string name="root_su">su bulundu (tür belirsiz)</string>
+
+    <string name="vpn_connect">Bağlan</string>
+    <string name="vpn_connecting">Bağlanıyor…</string>
+    <string name="vpn_connected">Bağlı</string>
+    <string name="vpn_state_off">Korumasız. Yani herkes seni görüyor.</string>
+    <string name="vpn_state_connecting">Pasaporta damga basılıyor…</string>
+    <string name="vpn_state_on">Sınır geçildi. Hoş geldin, yabancı.</string>
+    <string name="vpn_provider">Sağlayıcı</string>
+    <string name="provider_proton">Proton (WireGuard)</string>
+    <string name="provider_custom">Özel config</string>
+    <string name="provider_own">Kendi sunucum</string>
+    <string name="vpn_info_country">Ülke</string>
+    <string name="vpn_info_ip">IP</string>
+    <string name="vpn_info_protocol">Protokol</string>
+    <string name="vpn_preview_note">Önizleme: VPN motoru Aşama 4\'te bağlanacak. Şu an sadece animasyonlar gerçek.</string>
+
+    <string name="apps_search">Uygulama ara</string>
+    <string name="apps_featured">Öne çıkanlar</string>
+    <string name="apps_all">Tüm uygulamalar</string>
+    <string name="apps_selected">%1$d uygulama seçili</string>
+    <string name="apps_save">Kaydet (%1$d)</string>
+    <string name="apps_saved">Kaydedildi</string>
+    <string name="apps_empty">Böyle bir uygulama yok. Belki de hiç olmadı.</string>
+    <string name="apps_hidden_note">Google Play ve Google servisleri güvenlik için listede gösterilmez.</string>
+
+    <string name="settings_theme">Tema</string>
+    <string name="theme_system">Sistem</string>
+    <string name="theme_light">Açık</string>
+    <string name="theme_dark">Koyu</string>
+    <string name="theme_amoled">AMOLED</string>
+    <string name="settings_dynamic">Dinamik renkler (Monet)</string>
+    <string name="settings_dynamic_desc">Renkleri duvar kağıdından al</string>
+    <string name="settings_dynamic_unsupported">Android 12 veya üstü gerekir</string>
+    <string name="settings_language">Dil</string>
+    <string name="lang_system">Sistem</string>
+    <string name="lang_tr">Türkçe</string>
+    <string name="lang_en">English</string>
+    <string name="settings_hooklog">Hook günlüğü</string>
+    <string name="settings_hooklog_desc">Hangi uygulama neyi sordu, ne döndürdük</string>
+    <string name="settings_about">Hakkında</string>
+    <string name="about_license">Lisans: Apache-2.0</string>
+    <string name="about_github">GitHub\'da aç</string>
 </resources>
