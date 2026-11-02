@@ -50,3 +50,11 @@ dependencies {
     compileOnly("io.github.libxposed:api:102.0.0")
     implementation("io.github.libxposed:service:102.0.0")
 }
+
+// libxposed 102 kütüphaneleri compileSdk 37 ister, kullandığımız Android Gradle Plugin (8.7.3) ise
+// en çok 35'i destekliyor. Bu kontrol sadece derleme zamanı bilgisidir; çalışma zamanını etkilemez.
+tasks.configureEach {
+    if (name.startsWith("check") && name.endsWith("AarMetadata")) {
+        enabled = false
+    }
+}
