@@ -77,6 +77,42 @@ class AppSettings(context: Context) {
         sp.edit().putBoolean("dock_autohide", value).apply()
     }
 
+    /** Hangi katmanlar spooflansın (hook'lar bunları uzak tercihlerden okur) */
+    var layerLocation by mutableStateOf(sp.getBoolean("layer_location", true))
+        private set
+
+    var layerSim by mutableStateOf(sp.getBoolean("layer_sim", true))
+        private set
+
+    var layerTimezone by mutableStateOf(sp.getBoolean("layer_tz", true))
+        private set
+
+    var layerLocale by mutableStateOf(sp.getBoolean("layer_locale", false))
+        private set
+
+    private fun sync() {
+        ModuleBridge.pushAll()
+    }
+
+    fun updateLayer(key: String, value: Boolean) {
+        when (key) {
+            Keys.LAYER_LOCATION -> layerLocation = value
+            Keys.LAYER_SIM -> layerSim = value
+            Keys.LAYER_TZ -> layerTimezone = value
+            Keys.LAYER_LOCALE -> layerLocale = value
+        }
+        sp.edit().putBoolean(key, value).apply()
+        sync()
+    }
+
+    fun saveAppSelection(apps: Set<String>, countries: Map<String, String>) {
+        sp.edit()
+            .putStringSet("selected_apps", HashSet(apps))
+            .putStringSet("app_countries", HashSet(countries.map { "${it.key}|${it.value}" }))
+            .apply()
+        sync()
+    }
+
     fun updateTheme(mode: ThemeMode) {
         themeMode = mode
         sp.edit().putString("theme", mode.name).apply()
@@ -95,11 +131,13 @@ class AppSettings(context: Context) {
     fun updateHookLog(value: Boolean) {
         hookLog = value
         sp.edit().putBoolean("hook_log", value).apply()
+        sync()
     }
 
     fun updateDefaultCountry(code: String) {
         defaultCountry = code
         sp.edit().putString("country", code).apply()
+        sync()
     }
 
     fun loadSelectedApps(): Set<String> =

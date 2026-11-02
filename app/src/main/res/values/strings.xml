@@ -23,10 +23,10 @@
     <string name="info_selinux">SELinux</string>
     <string name="info_root">Root</string>
     <string name="info_zygisk">Zygisk</string>
-    <string name="info_lsposed">LSPosed Manager</string>
+    <string name="info_lsposed">LSPosed</string>
     <string name="val_unreadable">Okunamadı</string>
     <string name="val_unknown">Bilinmiyor</string>
-    <string name="val_zygisk_hint">Modül çalışınca doğrulanır</string>
+    <string name="val_zygisk_hint">LSPosed bağlanınca görünür</string>
     <string name="val_found">Bulundu</string>
     <string name="val_not_found">Bulunamadı (gizli olabilir)</string>
     <string name="root_none">Tespit edilemedi</string>
@@ -92,4 +92,23 @@
     <string name="dock_roundness">Yuvarlaklık: %%%1$d</string>
     <string name="dock_autohide">Kaydırırken gizle</string>
     <string name="dock_autohide_desc">Aşağı kaydırınca dock gizlenir, yukarı kaydırınca geri gelir.</string>
+
+    <string name="module_description">Seçilen uygulamalara başka bir ülkede görünme: konum, SIM, saat dilimi ve dil.</string>
+    <string name="home_status_on">LSPosed\'a bağlı</string>
+    <string name="home_status_off">LSPosed\'a bağlı değil</string>
+    <string name="home_status_on_desc">%1$s %2$s · API %3$d · Kapsam: %4$d uygulama</string>
+    <string name="home_status_off_desc">LSPosed\'da modülü etkinleştir, sonra bu uygulamayı yeniden aç.</string>
+    <string name="val_zygisk_running">Çalışıyor (LSPosed bağlı)</string>
+    <string name="val_not_connected">Bağlı değil</string>
+    <string name="scope_approved">Kapsama eklendi: %1$d uygulama</string>
+    <string name="scope_failed">Kapsam isteği olmadı: %1$s</string>
+    <string name="layers_title">Spoof katmanları</string>
+    <string name="layer_location">Konum</string>
+    <string name="layer_location_desc">GPS ve son bilinen konum</string>
+    <string name="layer_sim">SIM ve operatör</string>
+    <string name="layer_sim_desc">Ülke kodu, operatör adı, MCC/MNC</string>
+    <string name="layer_tz">Saat dilimi</string>
+    <string name="layer_tz_desc">Seçilen ülkenin saat dilimi</string>
+    <string name="layer_locale">Bölge ve dil</string>
+    <string name="layer_locale_desc">Uygulamanın gördüğü dil değişir, dikkatli kullan</string>
 </resources>

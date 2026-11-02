@@ -28,6 +28,16 @@ jobs:
       - name: Debug APK derle
         run: gradle assembleDebug --stacktrace
 
+      - name: Modül kontrolü (provider ve xposed dosyaları)
+        continue-on-error: true
+        run: |
+          APK=$(ls app/build/outputs/apk/debug/*.apk | head -n1)
+          AAPT=$(ls "$ANDROID_HOME"/build-tools/*/aapt2 | tail -n1)
+          echo "--- provider ---"
+          "$AAPT" dump xmltree --file AndroidManifest.xml "$APK" | grep -i -A8 "provider" || echo "provider yok"
+          echo "--- META-INF/xposed ---"
+          unzip -l "$APK" | grep -i "META-INF/xposed" || echo "xposed dosyaları yok"
+
       - uses: actions/upload-artifact@v7
         with:
           name: UygulamaKonumAldatici-debug

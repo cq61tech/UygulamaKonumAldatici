@@ -96,8 +96,7 @@ class AppsState(private val settings: AppSettings) {
     fun save() {
         saved = selected.toSet()
         savedCountries = effectiveCountries()
-        settings.saveSelectedApps(saved)
-        settings.saveAppCountries(savedCountries)
+        settings.saveAppSelection(saved, savedCountries)
     }
 }
 
@@ -274,6 +273,7 @@ fun AppsScreen(state: AppsState, settings: AppSettings, modifier: Modifier = Mod
                 onClick = {
                     state.save()
                     Toast.makeText(ctx, R.string.apps_saved, Toast.LENGTH_SHORT).show()
+                    ModuleBridge.requestScope(ctx, state.selected.toList())
                 },
                 icon = { Icon(Icons.Filled.Check, contentDescription = null) },
                 text = { Text(stringResource(R.string.apps_save, state.selected.size)) },

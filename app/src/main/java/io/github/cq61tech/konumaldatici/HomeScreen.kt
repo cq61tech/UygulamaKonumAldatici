@@ -44,7 +44,8 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun HomeScreen(modifier: Modifier = Modifier) {
     val ctx = LocalContext.current
-    val info = remember { SystemInfo.collect(ctx) }
+    val bridge = ModuleBridge.info
+    val info = remember(bridge) { SystemInfo.collect(ctx, bridge) }
     val version = remember { appVersion(ctx) }
 
     Column(
@@ -56,7 +57,7 @@ fun HomeScreen(modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         Appear(0) { BannerCard() }
-        Appear(1) { StatusCard(version.first, version.second) }
+        Appear(1) { StatusCard(version.first, version.second, bridge) }
         Appear(2) { SystemCard(info) }
     }
 }
@@ -103,9 +104,9 @@ private fun BannerCard() {
 }
 
 @Composable
-private fun StatusCard(versionName: String, versionCode: Long) {
+private fun StatusCard(versionName: String, versionCode: Long, bridge: ModuleBridge.Info?) {
     val cs = MaterialTheme.colorScheme
-    val active = ModuleStatus.active
+    val active = bridge != null
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
@@ -138,12 +139,22 @@ private fun StatusCard(versionName: String, versionCode: Long) {
                     style = MaterialTheme.typography.labelLarge,
                 )
                 Text(
-                    stringResource(R.string.home_status_pending),
+                    stringResource(if (active) R.string.home_status_on else R.string.home_status_off),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                 )
                 Text(
-                    stringResource(R.string.home_status_pending_desc),
+                    text = if (bridge != null) {
+                        stringResource(
+                            R.string.home_status_on_desc,
+                            bridge.name,
+                            bridge.version,
+                            bridge.api,
+                            bridge.scope.size,
+                        )
+                    } else {
+                        stringResource(R.string.home_status_off_desc)
+                    },
                     style = MaterialTheme.typography.bodySmall,
                 )
                 Text(

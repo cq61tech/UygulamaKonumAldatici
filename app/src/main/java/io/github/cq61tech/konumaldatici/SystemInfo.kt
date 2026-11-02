@@ -5,15 +5,9 @@ import android.content.pm.PackageManager
 import android.os.Build
 import java.io.File
 
-/** Aşama 3'te hook motoru kendi sürecinde bunu true yapıp modülün etkin olduğunu bildirecek. */
-object ModuleStatus {
-    @Volatile
-    var active: Boolean = false
-}
-
 object SystemInfo {
 
-    fun collect(ctx: Context): List<Pair<Int, String>> {
+    fun collect(ctx: Context, bridge: ModuleBridge.Info?): List<Pair<Int, String>> {
         val pm = ctx.packageManager
         val unknown = ctx.getString(R.string.val_unknown)
         return listOf(
@@ -24,10 +18,12 @@ object SystemInfo {
             R.string.info_kernel to (System.getProperty("os.version") ?: unknown),
             R.string.info_selinux to selinux(ctx),
             R.string.info_root to root(ctx, pm),
-            R.string.info_zygisk to ctx.getString(R.string.val_zygisk_hint),
+            R.string.info_zygisk to
+                if (bridge != null) ctx.getString(R.string.val_zygisk_running)
+                else ctx.getString(R.string.val_zygisk_hint),
             R.string.info_lsposed to
-                if (installed(pm, "org.lsposed.manager")) ctx.getString(R.string.val_found)
-                else ctx.getString(R.string.val_not_found),
+                if (bridge != null) "${bridge.name} ${bridge.version} (API ${bridge.api})"
+                else ctx.getString(R.string.val_not_connected),
         )
     }
 
@@ -38,14 +34,24 @@ object SystemInfo {
         false
     }
 
-    private fun selinux(ctx: Context): String = try {
-        when (val v = File("/sys/fs/selinux/enforce").readText().trim()) {
-            "1" -> "Enforcing"
-            "0" -> "Permissive"
-            else -> v
+    private fun selinux(ctx: Context): String {
+        try {
+            return when (val v = File("/sys/fs/selinux/enforce").readText().trim()) {
+                "1" -> "Enforcing"
+                "0" -> "Permissive"
+                else -> v
+            }
+        } catch (e: Throwable) {
+            // dosya okunamadı, komutu dene
         }
-    } catch (e: Throwable) {
-        ctx.getString(R.string.val_unreadable)
+        try {
+            val p = Runtime.getRuntime().exec(arrayOf("getenforce"))
+            val out = p.inputStream.bufferedReader().readText().trim()
+            if (out.isNotEmpty()) return out
+        } catch (e: Throwable) {
+            // yoksay
+        }
+        return ctx.getString(R.string.val_unreadable)
     }
 
     private fun root(ctx: Context, pm: PackageManager): String {

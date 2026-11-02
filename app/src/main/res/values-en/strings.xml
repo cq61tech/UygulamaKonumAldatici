@@ -23,10 +23,10 @@
     <string name="info_selinux">SELinux</string>
     <string name="info_root">Root</string>
     <string name="info_zygisk">Zygisk</string>
-    <string name="info_lsposed">LSPosed Manager</string>
+    <string name="info_lsposed">LSPosed</string>
     <string name="val_unreadable">Unreadable</string>
     <string name="val_unknown">Unknown</string>
-    <string name="val_zygisk_hint">Verified once the module runs</string>
+    <string name="val_zygisk_hint">Shown once LSPosed connects</string>
     <string name="val_found">Found</string>
     <string name="val_not_found">Not found (may be hidden)</string>
     <string name="root_none">Not detected</string>
@@ -92,4 +92,23 @@
     <string name="dock_roundness">Roundness: %1$d%%</string>
     <string name="dock_autohide">Hide while scrolling</string>
     <string name="dock_autohide_desc">The dock slides away when you scroll down and comes back when you scroll up.</string>
+
+    <string name="module_description">Appear in another country for selected apps: location, SIM, time zone and language.</string>
+    <string name="home_status_on">Connected to LSPosed</string>
+    <string name="home_status_off">Not connected to LSPosed</string>
+    <string name="home_status_on_desc">%1$s %2$s · API %3$d · Scope: %4$d apps</string>
+    <string name="home_status_off_desc">Enable the module in LSPosed, then reopen this app.</string>
+    <string name="val_zygisk_running">Running (LSPosed connected)</string>
+    <string name="val_not_connected">Not connected</string>
+    <string name="scope_approved">Added to scope: %1$d apps</string>
+    <string name="scope_failed">Scope request failed: %1$s</string>
+    <string name="layers_title">Spoofing layers</string>
+    <string name="layer_location">Location</string>
+    <string name="layer_location_desc">GPS and last known location</string>
+    <string name="layer_sim">SIM and carrier</string>
+    <string name="layer_sim_desc">Country code, carrier name, MCC/MNC</string>
+    <string name="layer_tz">Time zone</string>
+    <string name="layer_tz_desc">The selected country\'s time zone</string>
+    <string name="layer_locale">Region and language</string>
+    <string name="layer_locale_desc">Changes the language apps see. Use with care</string>
 </resources>

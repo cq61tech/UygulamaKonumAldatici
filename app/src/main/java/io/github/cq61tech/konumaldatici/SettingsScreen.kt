@@ -265,6 +265,39 @@ fun SettingsScreen(settings: AppSettings, modifier: Modifier = Modifier) {
         }
 
         Appear(3) {
+            SectionCard(stringResource(R.string.layers_title)) {
+                SwitchRow(
+                    title = stringResource(R.string.layer_location),
+                    desc = stringResource(R.string.layer_location_desc),
+                    checked = settings.layerLocation,
+                    enabled = true,
+                    onChange = { settings.updateLayer(Keys.LAYER_LOCATION, it) },
+                )
+                SwitchRow(
+                    title = stringResource(R.string.layer_sim),
+                    desc = stringResource(R.string.layer_sim_desc),
+                    checked = settings.layerSim,
+                    enabled = true,
+                    onChange = { settings.updateLayer(Keys.LAYER_SIM, it) },
+                )
+                SwitchRow(
+                    title = stringResource(R.string.layer_tz),
+                    desc = stringResource(R.string.layer_tz_desc),
+                    checked = settings.layerTimezone,
+                    enabled = true,
+                    onChange = { settings.updateLayer(Keys.LAYER_TZ, it) },
+                )
+                SwitchRow(
+                    title = stringResource(R.string.layer_locale),
+                    desc = stringResource(R.string.layer_locale_desc),
+                    checked = settings.layerLocale,
+                    enabled = true,
+                    onChange = { settings.updateLayer(Keys.LAYER_LOCALE, it) },
+                )
+            }
+        }
+
+        Appear(4) {
             SectionCard(stringResource(R.string.settings_hooklog)) {
                 SwitchRow(
                     title = stringResource(R.string.settings_hooklog),
@@ -276,7 +309,7 @@ fun SettingsScreen(settings: AppSettings, modifier: Modifier = Modifier) {
             }
         }
 
-        Appear(4) {
+        Appear(5) {
             SectionCard(stringResource(R.string.settings_about)) {
                 Text(
                     text = stringResource(R.string.app_name) + "  •  " +

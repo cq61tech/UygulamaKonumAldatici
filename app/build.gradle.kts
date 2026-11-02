@@ -12,8 +12,8 @@ android {
         applicationId = "io.github.cq61tech.konumaldatici"
         minSdk = 29
         targetSdk = 35
-        versionCode = 4
-        versionName = "0.2.6"
+        versionCode = 5
+        versionName = "0.3.0"
     }
 
     buildTypes {
@@ -45,4 +45,8 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-core")
     implementation("androidx.appcompat:appcompat:1.7.0")
+
+    // Modern Xposed: modül tarafı (hedef süreçte framework sağlar) ve uygulama tarafı (servis bağlantısı)
+    compileOnly("io.github.libxposed:api:102.0.0")
+    implementation("io.github.libxposed:service:102.0.0")
 }

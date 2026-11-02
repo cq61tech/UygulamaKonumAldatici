@@ -61,6 +61,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         val activity = this
         val settings = AppSettings(this)
+        ModuleBridge.attach(settings)
 
         setContent {
             val dark = isDarkFor(settings.themeMode)
