@@ -111,4 +111,5 @@
     <string name="layer_tz_desc">Seçilen ülkenin saat dilimi</string>
     <string name="layer_locale">Bölge ve dil</string>
     <string name="layer_locale_desc">Uygulamanın gördüğü dil değişir, dikkatli kullan</string>
+    <string name="layers_note">Değişiklikler, ilgili uygulamayı kapatıp yeniden açınca geçerli olur.</string>
 </resources>

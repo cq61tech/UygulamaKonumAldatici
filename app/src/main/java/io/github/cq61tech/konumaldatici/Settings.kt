@@ -84,7 +84,7 @@ class AppSettings(context: Context) {
     var layerSim by mutableStateOf(sp.getBoolean("layer_sim", true))
         private set
 
-    var layerTimezone by mutableStateOf(sp.getBoolean("layer_tz", true))
+    var layerTimezone by mutableStateOf(sp.getBoolean("layer_tz", false))
         private set
 
     var layerLocale by mutableStateOf(sp.getBoolean("layer_locale", false))

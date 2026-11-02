@@ -3,6 +3,7 @@ package io.github.cq61tech.konumaldatici.hook
 import android.content.SharedPreferences
 import android.location.Location
 import android.location.LocationManager
+import android.os.Process
 import android.os.SystemClock
 import android.telephony.SubscriptionInfo
 import android.telephony.TelephonyManager
@@ -16,18 +17,38 @@ import io.github.libxposed.api.XposedModuleInterface.PackageLoadedParam
 import java.time.ZoneId
 import java.util.Locale
 import java.util.TimeZone
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicBoolean
 
 private const val TAG = "KonumAldatici"
 
 /**
  * Hedef uygulamanın içinde çalışan hook motoru (libxposed API 101/102).
- * Hangi uygulamanın hangi ülkede görüneceği, uygulamanın yazdığı uzak tercihlerden okunur.
- * Her hook ayrı ayrı korunur: biri başarısız olursa diğerleri çalışmaya devam eder.
+ *
+ * Güvenlik önlemleri:
+ * - Sadece seçili uygulamalarda ve sadece açık katmanlar için hook kurulur (kapalı katman = hiç hook yok).
+ * - Hook'lar kendi içinde tekrar tetiklenirse (özyineleme) orijinal metoda düşer.
+ * - Üretilen TimeZone/ZoneId/Locale nesneleri önbelleğe alınır, her çağrıda yenisi yaratılmaz.
+ * - Günlük yazma ayrı bir iş parçacığında yapılır, uygulamanın ana akışını bekletmez.
  */
 class HookEntry : XposedModule() {
 
     private var prefs: SharedPreferences? = null
+    private val installed = AtomicBoolean(false)
     private val logged = HashSet<String>()
+    private val busy = ThreadLocal<Boolean>()
+
+    private val logExec: ExecutorService by lazy {
+        Executors.newSingleThreadExecutor { r ->
+            Thread(r, "KonumAldatici-log").apply { isDaemon = true }
+        }
+    }
+
+    private val tzCache = ConcurrentHashMap<String, TimeZone>()
+    private val zoneCache = ConcurrentHashMap<String, ZoneId>()
+    private val localeCache = ConcurrentHashMap<String, Locale>()
 
     private class Snap(
         val enabled: Boolean,
@@ -69,7 +90,7 @@ class HookEntry : XposedModule() {
                     country = Countries.byCode(code),
                     location = p.getBoolean(Keys.LAYER_LOCATION, true),
                     sim = p.getBoolean(Keys.LAYER_SIM, true),
-                    tz = p.getBoolean(Keys.LAYER_TZ, true),
+                    tz = p.getBoolean(Keys.LAYER_TZ, false),
                     locale = p.getBoolean(Keys.LAYER_LOCALE, false),
                     log = p.getBoolean(Keys.HOOK_LOG, true),
                 )
@@ -89,14 +110,24 @@ class HookEntry : XposedModule() {
 
     override fun onPackageLoaded(param: PackageLoadedParam) {
         if (!param.isFirstPackage) return
+        // Aynı süreçte iki kez çağrılırsa ikinci kez hook kurma
+        if (!installed.compareAndSet(false, true)) return
+
         val pkg = param.packageName
         val cfg = Cfg(pkg)
-        log(Log.INFO, TAG, "yüklendi: $pkg (uzak tercihler: ${if (prefs != null) "var" else "yok"})")
+        val s = cfg.get()
+        log(
+            Log.INFO, TAG,
+            "yüklendi: $pkg pid=${Process.myPid()} (uzak tercihler: ${if (prefs != null) "var" else "yok"}; " +
+                "seçili: ${s.enabled}; konum=${s.location} sim=${s.sim} saat=${s.tz} dil=${s.locale})"
+        )
+        if (!s.enabled) return
 
-        safe("location") { hookLocation(cfg, pkg) }
-        safe("telephony") { hookTelephony(cfg) }
-        safe("timezone") { hookTimezone(cfg) }
-        safe("locale") { hookLocale(cfg) }
+        if (s.location) safe("location") { hookLocation(cfg, pkg) }
+        if (s.sim) safe("telephony") { hookTelephony(cfg) }
+        if (s.tz) safe("timezone") { hookTimezone(cfg) }
+        if (s.locale) safe("locale") { hookLocale(cfg) }
+        log(Log.INFO, TAG, "hook'lar kuruldu: $pkg")
     }
 
     private inline fun safe(name: String, block: () -> Unit) {
@@ -107,55 +138,81 @@ class HookEntry : XposedModule() {
         }
     }
 
-    private fun note(cfg: Cfg, key: String) {
-        val s = cfg.get()
+    /** İlk kullanımda bir kez, ayrı iş parçacığında günlüğe yazar. */
+    private fun note(s: Snap, key: String) {
         if (!s.log) return
         val first = synchronized(logged) { logged.add(key) }
-        if (first) log(Log.INFO, TAG, "spoof: $key -> ${s.country.code}")
+        if (!first) return
+        val msg = "spoof: $key -> ${s.country.code}"
+        logExec.execute {
+            busy.set(true)
+            try {
+                log(Log.INFO, TAG, msg)
+            } catch (t: Throwable) {
+                // yoksay
+            }
+        }
+    }
+
+    /**
+     * Katman açık ve uygulama seçiliyse [value] döndürür, değilse orijinal metodu çalıştırır.
+     * Hook kendi içinde yeniden tetiklenirse hep orijinale düşer.
+     */
+    private inline fun spoof(
+        cfg: Cfg,
+        layer: (Snap) -> Boolean,
+        proceed: () -> Any?,
+        value: (Snap) -> Any?,
+    ): Any? {
+        if (busy.get() == true) return proceed()
+        var result: Any? = null
+        var done = false
+        busy.set(true)
+        try {
+            val s = cfg.get()
+            if (s.enabled && layer(s)) {
+                result = value(s)
+                done = true
+            }
+        } catch (t: Throwable) {
+            done = false
+        } finally {
+            busy.set(false)
+        }
+        return if (done) result else proceed()
     }
 
     // ------------------------------------------------------------------ Konum
 
     private fun hookLocation(cfg: Cfg, pkg: String) {
-        // Her uygulama için sabit, küçük bir sapma (yaklaşık 150 m): hep aynı noktada durmasın
+        // Her uygulama için sabit, küçük bir sapma (yaklaşık 150 m)
         val h = pkg.hashCode()
         val dLat = (((h and 0xFF) - 128) / 128.0) * 0.0015
         val dLon = ((((h shr 8) and 0xFF) - 128) / 128.0) * 0.0015
 
         val getLat = Location::class.java.getDeclaredMethod("getLatitude")
         hook(getLat).intercept { chain ->
-            val s = cfg.get()
-            if (s.enabled && s.location) {
-                note(cfg, "Location.getLatitude")
+            spoof(cfg, { it.location }, { chain.proceed() }) { s ->
+                note(s, "Location.getLatitude")
                 s.country.lat + dLat
-            } else {
-                chain.proceed()
             }
         }
-        deoptimize(getLat)
 
         val getLon = Location::class.java.getDeclaredMethod("getLongitude")
         hook(getLon).intercept { chain ->
-            val s = cfg.get()
-            if (s.enabled && s.location) {
-                note(cfg, "Location.getLongitude")
+            spoof(cfg, { it.location }, { chain.proceed() }) { s ->
+                note(s, "Location.getLongitude")
                 s.country.lon + dLon
-            } else {
-                chain.proceed()
             }
         }
-        deoptimize(getLon)
 
-        // Sahte konum sağlayıcı bayrağı: her zaman "gerçek" görünsün
         val fromMock = Location::class.java.getDeclaredMethod("isFromMockProvider")
         hook(fromMock).intercept { chain ->
-            val s = cfg.get()
-            if (s.enabled && s.location) false else chain.proceed()
+            spoof(cfg, { it.location }, { chain.proceed() }) { false }
         }
         runCatching { Location::class.java.getDeclaredMethod("isMock") }.getOrNull()?.let { m ->
             hook(m).intercept { chain ->
-                val s = cfg.get()
-                if (s.enabled && s.location) false else chain.proceed()
+                spoof(cfg, { it.location }, { chain.proceed() }) { false }
             }
         }
 
@@ -166,19 +223,20 @@ class HookEntry : XposedModule() {
         )
         hook(lastKnown).intercept { chain ->
             val real = chain.proceed()
-            val s = cfg.get()
-            if (s.enabled && s.location && real == null) {
-                note(cfg, "LocationManager.getLastKnownLocation")
-                val provider = (chain.getArg(0) as? String) ?: LocationManager.GPS_PROVIDER
-                Location(provider).apply {
-                    latitude = s.country.lat + dLat
-                    longitude = s.country.lon + dLon
-                    accuracy = 8f
-                    time = System.currentTimeMillis()
-                    elapsedRealtimeNanos = SystemClock.elapsedRealtimeNanos()
-                }
-            } else {
+            if (real != null) {
                 real
+            } else {
+                val provider = (chain.getArg(0) as? String) ?: LocationManager.GPS_PROVIDER
+                spoof(cfg, { it.location }, { null }) { s ->
+                    note(s, "LocationManager.getLastKnownLocation")
+                    Location(provider).apply {
+                        latitude = s.country.lat + dLat
+                        longitude = s.country.lon + dLon
+                        accuracy = 8f
+                        time = System.currentTimeMillis()
+                        elapsedRealtimeNanos = SystemClock.elapsedRealtimeNanos()
+                    }
+                }
             }
         }
     }
@@ -196,17 +254,14 @@ class HookEntry : XposedModule() {
             }
             try {
                 hook(m).intercept { chain ->
-                    val s = cfg.get()
-                    if (s.enabled && s.sim) {
-                        note(cfg, "TelephonyManager.${m.name}")
+                    spoof(cfg, { it.sim }, { chain.proceed() }) { s ->
+                        note(s, "TelephonyManager.${m.name}")
                         val c = s.country
                         when (kind) {
                             0 -> c.code.lowercase(Locale.ROOT)
                             1 -> c.mcc + c.mnc
                             else -> c.operatorName
                         }
-                    } else {
-                        chain.proceed()
                     }
                 }
             } catch (t: Throwable) {
@@ -216,8 +271,9 @@ class HookEntry : XposedModule() {
 
         val subIso = SubscriptionInfo::class.java.getDeclaredMethod("getCountryIso")
         hook(subIso).intercept { chain ->
-            val s = cfg.get()
-            if (s.enabled && s.sim) s.country.code.lowercase(Locale.ROOT) else chain.proceed()
+            spoof(cfg, { it.sim }, { chain.proceed() }) { s ->
+                s.country.code.lowercase(Locale.ROOT)
+            }
         }
     }
 
@@ -226,20 +282,20 @@ class HookEntry : XposedModule() {
     private fun hookTimezone(cfg: Cfg) {
         val getDefault = TimeZone::class.java.getDeclaredMethod("getDefault")
         hook(getDefault).intercept { chain ->
-            val s = cfg.get()
-            if (s.enabled && s.tz) {
-                note(cfg, "TimeZone.getDefault")
-                TimeZone.getTimeZone(s.country.timezone)
-            } else {
-                chain.proceed()
+            spoof(cfg, { it.tz }, { chain.proceed() }) { s ->
+                note(s, "TimeZone.getDefault")
+                val id = s.country.timezone
+                val base = tzCache.getOrPut(id) { TimeZone.getTimeZone(id) }
+                base.clone() as TimeZone
             }
         }
-        deoptimize(getDefault)
 
         val zoneDefault = ZoneId::class.java.getDeclaredMethod("systemDefault")
         hook(zoneDefault).intercept { chain ->
-            val s = cfg.get()
-            if (s.enabled && s.tz) ZoneId.of(s.country.timezone) else chain.proceed()
+            spoof(cfg, { it.tz }, { chain.proceed() }) { s ->
+                val id = s.country.timezone
+                zoneCache.getOrPut(id) { ZoneId.of(id) }
+            }
         }
     }
 
@@ -248,21 +304,17 @@ class HookEntry : XposedModule() {
     private fun hookLocale(cfg: Cfg) {
         val plain = Locale::class.java.getDeclaredMethod("getDefault")
         hook(plain).intercept { chain ->
-            val s = cfg.get()
-            if (s.enabled && s.locale) {
-                note(cfg, "Locale.getDefault")
-                Locale.forLanguageTag(s.country.locale.replace('_', '-'))
-            } else {
-                chain.proceed()
+            spoof(cfg, { it.locale }, { chain.proceed() }) { s ->
+                note(s, "Locale.getDefault")
+                val tag = s.country.locale.replace('_', '-')
+                localeCache.getOrPut(tag) { Locale.forLanguageTag(tag) }
             }
         }
         val withCategory = Locale::class.java.getDeclaredMethod("getDefault", Locale.Category::class.java)
         hook(withCategory).intercept { chain ->
-            val s = cfg.get()
-            if (s.enabled && s.locale) {
-                Locale.forLanguageTag(s.country.locale.replace('_', '-'))
-            } else {
-                chain.proceed()
+            spoof(cfg, { it.locale }, { chain.proceed() }) { s ->
+                val tag = s.country.locale.replace('_', '-')
+                localeCache.getOrPut(tag) { Locale.forLanguageTag(tag) }
             }
         }
     }

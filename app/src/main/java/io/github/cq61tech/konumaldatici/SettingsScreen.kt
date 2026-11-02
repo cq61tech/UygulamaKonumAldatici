@@ -266,6 +266,11 @@ fun SettingsScreen(settings: AppSettings, modifier: Modifier = Modifier) {
 
         Appear(3) {
             SectionCard(stringResource(R.string.layers_title)) {
+                Text(
+                    text = stringResource(R.string.layers_note),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
                 SwitchRow(
                     title = stringResource(R.string.layer_location),
                     desc = stringResource(R.string.layer_location_desc),
