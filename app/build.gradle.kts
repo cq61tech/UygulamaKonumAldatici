@@ -12,8 +12,8 @@ android {
         applicationId = "io.github.cq61tech.konumaldatici"
         minSdk = 29
         targetSdk = 35
-        versionCode = 6
-        versionName = "0.3.1"
+        versionCode = 8
+        versionName = "0.3.3"
     }
 
     buildTypes {

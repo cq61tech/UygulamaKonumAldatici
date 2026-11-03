@@ -112,4 +112,9 @@
     <string name="layer_locale">Region and language</string>
     <string name="layer_locale_desc">Changes the language apps see. Use with care</string>
     <string name="layers_note">Changes apply the next time you launch the app.</string>
+
+    <string name="root_warn_title">TikTok detects root access</string>
+    <string name="root_warn_text">Dear user, unfortunately TikTok detects root access and gets stuck on launch.\n\nYou can still change your region by using patched builds such as TikTok You or MargyTiktok. We hope they work for you!\n\nYou will need Telegram to download them.</string>
+    <string name="root_warn_confirm">Select anyway</string>
+    <string name="root_warn_cancel">Cancel</string>
 </resources>

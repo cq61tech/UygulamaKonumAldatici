@@ -27,12 +27,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -116,6 +118,13 @@ private val FEATURED = setOf(
     "com.facebook.katana",
 )
 
+/** Kök erişimini / LSPosed'ı algılayıp açılışta takılan uygulamalar: seçmeden önce uyarılır. */
+private val ROOT_DETECTING = setOf(
+    "com.zhiliaoapp.musically",
+    "com.ss.android.ugc.trill",
+    "com.zhiliaoapp.musically.go",
+)
+
 /** Play Store ve Google Play servislerine asla dokunmuyoruz. */
 private fun isProtected(pkg: String): Boolean =
     pkg == "com.android.vending" ||
@@ -147,6 +156,7 @@ fun AppsScreen(state: AppsState, settings: AppSettings, modifier: Modifier = Mod
     val ctx = LocalContext.current
     val dockPad = LocalDockPadding.current
     var sheetPkg by remember { mutableStateOf<String?>(null) }
+    var warnPkg by remember { mutableStateOf<String?>(null) }
     val defaultCountry = Countries.byCode(settings.defaultCountry)
 
     LaunchedEffect(Unit) {
@@ -239,7 +249,13 @@ fun AppsScreen(state: AppsState, settings: AppSettings, modifier: Modifier = Mod
                                 selected = app.pkg in state.selected,
                                 country = Countries.byCode(state.appCountry[app.pkg] ?: settings.defaultCountry),
                                 overridden = app.pkg in state.appCountry,
-                                onToggle = { state.toggle(app.pkg) },
+                                onToggle = {
+                                    if (app.pkg in ROOT_DETECTING && app.pkg !in state.selected) {
+                                        warnPkg = app.pkg
+                                    } else {
+                                        state.toggle(app.pkg)
+                                    }
+                                },
                                 onCountryClick = { sheetPkg = app.pkg },
                             )
                         }
@@ -252,7 +268,13 @@ fun AppsScreen(state: AppsState, settings: AppSettings, modifier: Modifier = Mod
                                 selected = app.pkg in state.selected,
                                 country = Countries.byCode(state.appCountry[app.pkg] ?: settings.defaultCountry),
                                 overridden = app.pkg in state.appCountry,
-                                onToggle = { state.toggle(app.pkg) },
+                                onToggle = {
+                                    if (app.pkg in ROOT_DETECTING && app.pkg !in state.selected) {
+                                        warnPkg = app.pkg
+                                    } else {
+                                        state.toggle(app.pkg)
+                                    }
+                                },
                                 onCountryClick = { sheetPkg = app.pkg },
                             )
                         }
@@ -281,6 +303,25 @@ fun AppsScreen(state: AppsState, settings: AppSettings, modifier: Modifier = Mod
         }
     }
 
+    warnPkg?.let { pkg ->
+        AlertDialog(
+            onDismissRequest = { warnPkg = null },
+            title = { Text(stringResource(R.string.root_warn_title)) },
+            text = { Text(stringResource(R.string.root_warn_text)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    state.toggle(pkg)
+                    warnPkg = null
+                }) { Text(stringResource(R.string.root_warn_confirm)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { warnPkg = null }) {
+                    Text(stringResource(R.string.root_warn_cancel))
+                }
+            },
+        )
+    }
+
     sheetPkg?.let { pkg ->
         CountrySheet(
             selectedCode = state.appCountry[pkg],
@@ -288,7 +329,7 @@ fun AppsScreen(state: AppsState, settings: AppSettings, modifier: Modifier = Mod
             onPick = { code ->
                 if (code == null) state.appCountry.remove(pkg) else state.appCountry[pkg] = code
                 // Ülkesi seçilen uygulama otomatik seçili olsun
-                if (code != null && pkg !in state.selected) state.selected.add(pkg)
+                if (code != null && pkg !in state.selected && pkg !in ROOT_DETECTING) state.selected.add(pkg)
                 sheetPkg = null
             },
             onDismiss = { sheetPkg = null },
