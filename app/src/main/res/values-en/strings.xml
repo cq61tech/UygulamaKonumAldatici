@@ -114,7 +114,7 @@
     <string name="layers_note">Changes apply the next time you launch the app.</string>
 
     <string name="root_warn_title">TikTok detects root access</string>
-    <string name="root_warn_text">Dear user, unfortunately TikTok detects root access and gets stuck on launch.\n\nYou can still change your region by using patched builds such as TikTok You or MargyTiktok. We hope they work for you!\n\nYou will need Telegram to download them.</string>
+    <string name="root_warn_text">TikTok detects root access and tools like LSPosed, which can make it hang at launch. Because of this, Location Spoofer cannot work reliably with TikTok.\n\nCommunity-patched TikTok builds may skip this check, but they are unofficial. Only download them from sources you trust, and avoid signing in with your main account.\n\nDo you still want to select it?</string>
     <string name="root_warn_confirm">Select anyway</string>
     <string name="root_warn_cancel">Cancel</string>
 </resources>

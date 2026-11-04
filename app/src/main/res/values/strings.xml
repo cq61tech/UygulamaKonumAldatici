@@ -114,7 +114,7 @@
     <string name="layers_note">Değişiklikler, ilgili uygulamayı kapatıp yeniden açınca geçerli olur.</string>
 
     <string name="root_warn_title">TikTok kök erişimini algılıyor</string>
-    <string name="root_warn_text">Sevgili kullanıcı, ne yazık ki TikTok kök erişimini algılıyor ve uygulama açılışta takılıyor.\n\nYine de bölgenizi değiştirmek için TikTok You veya MargyTiktok gibi yamalanmış sürümleri kullanabilirsiniz. Umarız işinize yarar!\n\nBu sürümleri indirmek için Telegram gerekir.</string>
+    <string name="root_warn_text">TikTok, kök erişimini ve LSPosed gibi araçları algılıyor; bu yüzden açılışta takılıp kalabiliyor. Bu nedenle Konum Aldatıcı, TikTok ile güvenilir çalışmaz.\n\nTopluluk tarafından yamalanmış TikTok sürümleri bu kontrolü atlayabilir, ancak bunlar resmî değildir. Yalnızca güvendiğin kaynaklardan indir ve ana hesabınla giriş yapma.\n\nYine de seçmek istiyor musun?</string>
     <string name="root_warn_confirm">Yine de seç</string>
     <string name="root_warn_cancel">Vazgeç</string>
 </resources>
