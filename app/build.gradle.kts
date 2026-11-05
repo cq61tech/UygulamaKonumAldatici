@@ -49,6 +49,7 @@ dependencies {
     // Modern Xposed: modül tarafı (hedef süreçte framework sağlar) ve uygulama tarafı (servis bağlantısı)
     compileOnly("io.github.libxposed:api:102.0.0")
     implementation("io.github.libxposed:service:102.0.0")
+    implementation("com.wireguard.android:tunnel:1.0.20260102")
 }
 
 // libxposed 102 kütüphaneleri compileSdk 37 ister, kullandığımız Android Gradle Plugin (8.7.3) ise
