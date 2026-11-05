@@ -43,6 +43,8 @@ object Countries {
         Country("AU", "Avustralya", "Australia", "505", "01", "Telstra", "Australia/Sydney", "en_AU", -33.8688, 151.2093),
         Country("BR", "Brezilya", "Brazil", "724", "05", "Claro", "America/Sao_Paulo", "pt_BR", -23.5505, -46.6333),
         Country("IN", "Hindistan", "India", "404", "10", "Airtel", "Asia/Kolkata", "en_IN", 28.6139, 77.2090),
+        Country("NO", "Norveç", "Norway", "242", "01", "Telenor", "Europe/Oslo", "nb_NO", 59.9139, 10.7522),
+        Country("RO", "Romanya", "Romania", "226", "01", "Vodafone RO", "Europe/Bucharest", "ro_RO", 44.4268, 26.1025),
         Country("MX", "Meksika", "Mexico", "334", "020", "Telcel", "America/Mexico_City", "es_MX", 19.4326, -99.1332),
     )
 

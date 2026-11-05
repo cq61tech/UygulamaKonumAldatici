@@ -12,8 +12,8 @@ android {
         applicationId = "io.github.cq61tech.konumaldatici"
         minSdk = 29
         targetSdk = 35
-        versionCode = 7
-        versionName = "0.3.2"
+        versionCode = 9
+        versionName = "0.4.0"
     }
 
     buildTypes {
@@ -49,6 +49,8 @@ dependencies {
     // Modern Xposed: modül tarafı (hedef süreçte framework sağlar) ve uygulama tarafı (servis bağlantısı)
     compileOnly("io.github.libxposed:api:102.0.0")
     implementation("io.github.libxposed:service:102.0.0")
+
+    // WireGuard tüneli (resmî kütüphane, Apache-2.0)
     implementation("com.wireguard.android:tunnel:1.0.20260102")
 }
 

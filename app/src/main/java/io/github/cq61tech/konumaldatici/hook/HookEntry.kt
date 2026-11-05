@@ -3,6 +3,7 @@ package io.github.cq61tech.konumaldatici.hook
 import android.content.SharedPreferences
 import android.location.Location
 import android.location.LocationManager
+import android.net.NetworkCapabilities
 import android.os.Process
 import android.os.SystemClock
 import android.telephony.SubscriptionInfo
@@ -57,6 +58,7 @@ class HookEntry : XposedModule() {
         val sim: Boolean,
         val tz: Boolean,
         val locale: Boolean,
+        val vpnHide: Boolean,
         val log: Boolean,
     )
 
@@ -80,7 +82,7 @@ class HookEntry : XposedModule() {
 
         private fun read(): Snap {
             val p = prefs
-            val off = Snap(false, Countries.byCode(null), false, false, false, false, false)
+            val off = Snap(false, Countries.byCode(null), false, false, false, false, false, false)
             if (p == null) return off
             return try {
                 val code = p.getString(Keys.countryKey(pkg), null)
@@ -92,6 +94,7 @@ class HookEntry : XposedModule() {
                     sim = p.getBoolean(Keys.LAYER_SIM, true),
                     tz = p.getBoolean(Keys.LAYER_TZ, false),
                     locale = p.getBoolean(Keys.LAYER_LOCALE, false),
+                    vpnHide = p.getBoolean(Keys.LAYER_VPNHIDE, true),
                     log = p.getBoolean(Keys.HOOK_LOG, true),
                 )
             } catch (t: Throwable) {
@@ -119,7 +122,7 @@ class HookEntry : XposedModule() {
         log(
             Log.INFO, TAG,
             "yüklendi: $pkg pid=${Process.myPid()} (uzak tercihler: ${if (prefs != null) "var" else "yok"}; " +
-                "seçili: ${s.enabled}; konum=${s.location} sim=${s.sim} saat=${s.tz} dil=${s.locale})"
+                "seçili: ${s.enabled}; konum=${s.location} sim=${s.sim} saat=${s.tz} dil=${s.locale} vpnGizle=${s.vpnHide})"
         )
         if (!s.enabled) return
 
@@ -127,6 +130,7 @@ class HookEntry : XposedModule() {
         if (s.sim) safe("telephony") { hookTelephony(cfg) }
         if (s.tz) safe("timezone") { hookTimezone(cfg) }
         if (s.locale) safe("locale") { hookLocale(cfg) }
+        if (s.vpnHide) safe("vpnhide") { hookVpnHide(cfg) }
         log(Log.INFO, TAG, "hook'lar kuruldu: $pkg")
     }
 
@@ -295,6 +299,34 @@ class HookEntry : XposedModule() {
             spoof(cfg, { it.tz }, { chain.proceed() }) { s ->
                 val id = s.country.timezone
                 zoneCache.getOrPut(id) { ZoneId.of(id) }
+            }
+        }
+    }
+
+    // ------------------------------------------------------------ VPN gizleme
+
+    /** Uygulama ağın VPN olduğunu sorarsa "hayır" der. */
+    private fun hookVpnHide(cfg: Cfg) {
+        val intType = Int::class.javaPrimitiveType
+
+        val hasTransport = NetworkCapabilities::class.java.getDeclaredMethod("hasTransport", intType)
+        hook(hasTransport).intercept { chain ->
+            if ((chain.getArg(0) as? Int) == NetworkCapabilities.TRANSPORT_VPN) {
+                spoof(cfg, { it.vpnHide }, { chain.proceed() }) { s ->
+                    note(s, "NetworkCapabilities.hasTransport(VPN)")
+                    false
+                }
+            } else {
+                chain.proceed()
+            }
+        }
+
+        val hasCapability = NetworkCapabilities::class.java.getDeclaredMethod("hasCapability", intType)
+        hook(hasCapability).intercept { chain ->
+            if ((chain.getArg(0) as? Int) == NetworkCapabilities.NET_CAPABILITY_NOT_VPN) {
+                spoof(cfg, { it.vpnHide }, { chain.proceed() }) { true }
+            } else {
+                chain.proceed()
             }
         }
     }

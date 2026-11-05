@@ -299,6 +299,13 @@ fun SettingsScreen(settings: AppSettings, modifier: Modifier = Modifier) {
                     enabled = true,
                     onChange = { settings.updateLayer(Keys.LAYER_LOCALE, it) },
                 )
+                SwitchRow(
+                    title = stringResource(R.string.layer_vpnhide),
+                    desc = stringResource(R.string.layer_vpnhide_desc),
+                    checked = settings.layerVpnHide,
+                    enabled = true,
+                    onChange = { settings.updateLayer(Keys.LAYER_VPNHIDE, it) },
+                )
             }
         }
 

@@ -86,6 +86,7 @@ object ModuleBridge {
             e.putBoolean(Keys.LAYER_SIM, st.layerSim)
             e.putBoolean(Keys.LAYER_TZ, st.layerTimezone)
             e.putBoolean(Keys.LAYER_LOCALE, st.layerLocale)
+            e.putBoolean(Keys.LAYER_VPNHIDE, st.layerVpnHide)
             e.putBoolean(Keys.HOOK_LOG, st.hookLog)
             e.apply()
         } catch (t: Throwable) {

@@ -100,6 +100,7 @@ class AppSettings(context: Context) {
             Keys.LAYER_SIM -> layerSim = value
             Keys.LAYER_TZ -> layerTimezone = value
             Keys.LAYER_LOCALE -> layerLocale = value
+            Keys.LAYER_VPNHIDE -> layerVpnHide = value
         }
         sp.edit().putBoolean(key, value).apply()
         sync()
@@ -111,6 +112,18 @@ class AppSettings(context: Context) {
             .putStringSet("app_countries", HashSet(countries.map { "${it.key}|${it.value}" }))
             .apply()
         sync()
+    }
+
+    /** Seçili WireGuard profilinin kimliği (örn. "US-FREE-3") */
+    var vpnProfile by mutableStateOf(sp.getString("vpn_profile", "") ?: "")
+        private set
+
+    var layerVpnHide by mutableStateOf(sp.getBoolean("layer_vpnhide", true))
+        private set
+
+    fun updateVpnProfile(id: String) {
+        vpnProfile = id
+        sp.edit().putString("vpn_profile", id).apply()
     }
 
     fun updateTheme(mode: ThemeMode) {

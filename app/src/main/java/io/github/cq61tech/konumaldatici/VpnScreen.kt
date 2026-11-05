@@ -1,5 +1,15 @@
 package io.github.cq61tech.konumaldatici
 
+import android.app.Activity
+import android.net.VpnService
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.withContext
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -66,43 +76,67 @@ import kotlinx.coroutines.launch
 
 enum class VpnState { Off, Connecting, On }
 
-/**
- * Aşama 4'e kadar kullanılan SİMÜLASYON. Gerçek bir tünel kurmaz.
- * Durum ekranın dışında tutulur; sekme değiştirince ya da ekran yeniden çizilince sıfırlanmaz.
- */
-object VpnSim {
-    var state by mutableStateOf(VpnState.Off)
-        private set
+@Composable
+fun VpnScreen(settings: AppSettings, modifier: Modifier = Modifier) {
+    val ctx = LocalContext.current
+    val state = VpnController.state
+    val scope = rememberCoroutineScope()
+    val lang = LocalConfiguration.current.locales[0].language
+    val country = Countries.byCode(settings.defaultCountry)
+    var showCountrySheet by remember { mutableStateOf(false) }
+    var profiles by remember { mutableStateOf(WgStore.list(ctx)) }
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-    private var job: Job? = null
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.IO) { VpnController.syncRunning(ctx) }
+    }
+
+    // Kullanılacak profil: seçili olan, yoksa hedef ülkeyle eşleşen, yoksa ilk profil
+    val profile = profiles.firstOrNull { it.id == settings.vpnProfile }
+        ?: profiles.firstOrNull { it.country == settings.defaultCountry }
+        ?: profiles.firstOrNull()
+
+    fun startVpn() {
+        val p = profile ?: return
+        VpnController.connect(ctx, p, settings.loadSelectedApps() + ctx.packageName)
+    }
+
+    val prepareLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { r ->
+        if (r.resultCode == Activity.RESULT_OK) startVpn()
+    }
+
+    val importLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenMultipleDocuments()
+    ) { uris ->
+        var ok = 0
+        uris.forEach { if (WgStore.import(ctx, it) != null) ok++ }
+        profiles = WgStore.list(ctx)
+        Toast.makeText(
+            ctx,
+            ctx.getString(R.string.vpn_imported, ok, uris.size),
+            Toast.LENGTH_SHORT,
+        ).show()
+    }
 
     fun toggle() {
         when (state) {
+            VpnState.Connecting -> Unit
+            VpnState.On -> VpnController.disconnect(ctx)
             VpnState.Off -> {
-                state = VpnState.Connecting
-                job?.cancel()
-                job = scope.launch {
-                    delay(6000)
-                    state = VpnState.On
+                if (profile == null) {
+                    Toast.makeText(ctx, R.string.vpn_no_profile, Toast.LENGTH_LONG).show()
+                    return
                 }
+                if (settings.loadSelectedApps().isEmpty()) {
+                    Toast.makeText(ctx, R.string.vpn_no_apps, Toast.LENGTH_LONG).show()
+                    return
+                }
+                val intent = VpnService.prepare(ctx)
+                if (intent != null) prepareLauncher.launch(intent) else startVpn()
             }
-            VpnState.Connecting -> {
-                job?.cancel()
-                state = VpnState.Off
-            }
-            VpnState.On -> state = VpnState.Off
         }
     }
-}
-
-@Composable
-fun VpnScreen(settings: AppSettings, modifier: Modifier = Modifier) {
-    val state = VpnSim.state
-    var provider by remember { mutableIntStateOf(0) }
-    var showCountrySheet by remember { mutableStateOf(false) }
-    val lang = LocalConfiguration.current.locales[0].language
-    val country = Countries.byCode(settings.defaultCountry)
 
     Column(
         modifier = modifier
@@ -115,9 +149,7 @@ fun VpnScreen(settings: AppSettings, modifier: Modifier = Modifier) {
     ) {
         Spacer(Modifier.height(4.dp))
 
-        Appear(0) {
-            ConnectButton(state) { VpnSim.toggle() }
-        }
+        Appear(0) { ConnectButton(state) { toggle() } }
 
         AnimatedContent(
             targetState = state,
@@ -133,6 +165,15 @@ fun VpnScreen(settings: AppSettings, modifier: Modifier = Modifier) {
                     }
                 ),
                 style = MaterialTheme.typography.titleMedium,
+                textAlign = TextAlign.Center,
+            )
+        }
+
+        VpnController.error?.let { err ->
+            Text(
+                text = stringResource(R.string.vpn_error, err),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
                 textAlign = TextAlign.Center,
             )
         }
@@ -179,37 +220,62 @@ fun VpnScreen(settings: AppSettings, modifier: Modifier = Modifier) {
         }
 
         Appear(2) {
-            SectionCard(stringResource(R.string.vpn_provider)) {
-                val providers = listOf(
-                    R.string.provider_proton,
-                    R.string.provider_custom,
-                    R.string.provider_own,
-                )
-                Row(
-                    Modifier.horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    providers.forEachIndexed { i, res ->
-                        FilterChip(
-                            selected = provider == i,
-                            onClick = { provider = i },
-                            label = { Text(stringResource(res)) },
-                        )
+            SectionCard(stringResource(R.string.vpn_profiles_title)) {
+                if (profiles.isEmpty()) {
+                    Text(
+                        text = stringResource(R.string.vpn_profiles_empty),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                } else {
+                    Row(
+                        Modifier.horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        profiles.forEach { p ->
+                            FilterChip(
+                                selected = p.id == profile?.id,
+                                enabled = state == VpnState.Off,
+                                onClick = {
+                                    settings.updateVpnProfile(p.id)
+                                    if (Countries.all.any { c -> c.code == p.country }) {
+                                        settings.updateDefaultCountry(p.country)
+                                    }
+                                },
+                                label = { Text("${flagOf(p.country)} ${p.id}") },
+                            )
+                        }
                     }
+                }
+                TextButton(onClick = { importLauncher.launch(arrayOf("*/*")) }) {
+                    Text(stringResource(R.string.vpn_import))
                 }
             }
         }
 
         Appear(3) {
             SectionCard(stringResource(R.string.nav_vpn)) {
-                InfoRow(stringResource(R.string.vpn_info_country), "${country.flag} ${country.displayName(lang)}")
-                InfoRow(stringResource(R.string.vpn_info_ip), "—")
+                InfoRow(
+                    stringResource(R.string.vpn_info_country),
+                    "${country.flag} ${country.displayName(lang)}",
+                )
+                InfoRow(stringResource(R.string.vpn_info_ip), IpCheck.text ?: "—")
                 InfoRow(stringResource(R.string.vpn_info_protocol), "WireGuard")
+                InfoRow(
+                    stringResource(R.string.vpn_info_apps),
+                    settings.loadSelectedApps().size.toString(),
+                )
+                TextButton(
+                    enabled = !IpCheck.busy,
+                    onClick = { scope.launch { IpCheck.run() } },
+                ) {
+                    Text(stringResource(R.string.vpn_check_ip))
+                }
             }
         }
 
         Text(
-            text = stringResource(R.string.vpn_preview_note),
+            text = stringResource(R.string.vpn_scope_note),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
@@ -222,7 +288,10 @@ fun VpnScreen(settings: AppSettings, modifier: Modifier = Modifier) {
             selectedCode = settings.defaultCountry,
             defaultCountry = null,
             onPick = { code ->
-                if (code != null) settings.updateDefaultCountry(code)
+                if (code != null) {
+                    settings.updateDefaultCountry(code)
+                    profiles.firstOrNull { it.country == code }?.let { settings.updateVpnProfile(it.id) }
+                }
                 showCountrySheet = false
             },
             onDismiss = { showCountrySheet = false },

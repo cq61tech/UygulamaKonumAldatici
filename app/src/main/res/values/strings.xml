@@ -114,7 +114,20 @@
     <string name="layers_note">Değişiklikler, ilgili uygulamayı kapatıp yeniden açınca geçerli olur.</string>
 
     <string name="root_warn_title">TikTok kök erişimini algılıyor</string>
-    <string name="root_warn_text">TikTok, kök erişimini ve LSPosed gibi araçları algılıyor; bu yüzden açılışta takılıp kalabiliyor. Bu nedenle Konum Aldatıcı, TikTok ile güvenilir çalışmaz.\n\nTopluluk tarafından yamalanmış TikTok sürümleri bu kontrolü atlayabilir, ancak bunlar resmî değildir. Yalnızca güvendiğin kaynaklardan indir ve ana hesabınla giriş yapma.\n\nYine de seçmek istiyor musun?</string>
+    <string name="root_warn_text">Sevgili kullanıcı, ne yazık ki TikTok kök erişimini algılıyor ve uygulama açılışta takılıyor.\n\nYine de bölgenizi değiştirmek için TikTok You veya MargyTiktok gibi yamalanmış sürümleri kullanabilirsiniz. Umarız işinize yarar!\n\nBu sürümleri indirmek için Telegram gerekir.</string>
     <string name="root_warn_confirm">Yine de seç</string>
     <string name="root_warn_cancel">Vazgeç</string>
+
+    <string name="vpn_profiles_title">WireGuard profilleri</string>
+    <string name="vpn_profiles_empty">Henüz profil yok. Proton\'dan indirdiğin .conf dosyalarını içe aktar.</string>
+    <string name="vpn_import">Profilleri içe aktar</string>
+    <string name="vpn_imported">%1$d / %2$d profil eklendi</string>
+    <string name="vpn_no_profile">Önce bir WireGuard profili içe aktar</string>
+    <string name="vpn_no_apps">Önce Uygulamalar sekmesinden en az bir uygulama seç ve kaydet</string>
+    <string name="vpn_check_ip">IP\'yi kontrol et</string>
+    <string name="vpn_info_apps">Tüneldeki uygulama</string>
+    <string name="vpn_error">Bağlantı kurulamadı: %1$s</string>
+    <string name="vpn_scope_note">VPN yalnızca Uygulamalar sekmesinde seçtiğin uygulamaları ve bu uygulamayı kapsar. Diğer uygulamalar normal bağlantısıyla devam eder.</string>
+    <string name="layer_vpnhide">VPN gizleme</string>
+    <string name="layer_vpnhide_desc">Uygulamaya VPN kullandığını belli etmez</string>
 </resources>

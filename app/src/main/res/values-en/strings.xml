@@ -114,7 +114,20 @@
     <string name="layers_note">Changes apply the next time you launch the app.</string>
 
     <string name="root_warn_title">TikTok detects root access</string>
-    <string name="root_warn_text">TikTok detects root access and tools like LSPosed, which can make it hang at launch. Because of this, Location Spoofer cannot work reliably with TikTok.\n\nCommunity-patched TikTok builds may skip this check, but they are unofficial. Only download them from sources you trust, and avoid signing in with your main account.\n\nDo you still want to select it?</string>
+    <string name="root_warn_text">Dear user, unfortunately TikTok detects root access and gets stuck on launch.\n\nYou can still change your region by using patched builds such as TikTok You or MargyTiktok. We hope they work for you!\n\nYou will need Telegram to download them.</string>
     <string name="root_warn_confirm">Select anyway</string>
     <string name="root_warn_cancel">Cancel</string>
+
+    <string name="vpn_profiles_title">WireGuard profiles</string>
+    <string name="vpn_profiles_empty">No profiles yet. Import the .conf files you downloaded from Proton.</string>
+    <string name="vpn_import">Import profiles</string>
+    <string name="vpn_imported">%1$d of %2$d profiles added</string>
+    <string name="vpn_no_profile">Import a WireGuard profile first</string>
+    <string name="vpn_no_apps">Select and save at least one app in the Apps tab first</string>
+    <string name="vpn_check_ip">Check IP</string>
+    <string name="vpn_info_apps">Apps in tunnel</string>
+    <string name="vpn_error">Could not connect: %1$s</string>
+    <string name="vpn_scope_note">The VPN only covers the apps you selected in the Apps tab, plus this app. Everything else keeps using your normal connection.</string>
+    <string name="layer_vpnhide">Hide VPN</string>
+    <string name="layer_vpnhide_desc">Keeps the app from seeing that you use a VPN</string>
 </resources>
