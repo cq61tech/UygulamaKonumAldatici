@@ -11,7 +11,7 @@ import kotlin.math.sqrt
 /**
  * Bağlanıyor animasyonundaki şekiller (Soft Burst, Cookie 9, Pentagon, Pill, Sunny, Cookie 4, Oval).
  * Her şekil açıya göre yarıçap dizisi olarak tutulur, böylece iki şekil arasında doğrudan dönüşüm yapılır.
- * Not: Bunlar resmî MaterialShapes değil, onlara benzetilmiş kendi çizimlerimiz.
+ * Resmî MaterialShapes değildir; onlara benzer şekillerdir.
  */
 object ShapeBank {
     const val N = 180

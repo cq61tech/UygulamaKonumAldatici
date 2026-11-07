@@ -125,7 +125,7 @@ private val ROOT_DETECTING = setOf(
     "com.zhiliaoapp.musically.go",
 )
 
-/** Play Store ve Google Play servislerine asla dokunmuyoruz. */
+/** Play Store ve Google Play hizmetleri listeden çıkarılır. */
 private fun isProtected(pkg: String): Boolean =
     pkg == "com.android.vending" ||
         pkg == "com.google.android.gsf" ||
@@ -139,12 +139,12 @@ private fun loadApps(ctx: Context): List<AppItem> {
         .filter { it.packageName != ctx.packageName }
         .filter { !isProtected(it.packageName) }
         .filter { pm.getLaunchIntentForPackage(it.packageName) != null }
-        .map { ai ->
+        .map { info ->
             AppItem(
-                pkg = ai.packageName,
-                label = ai.loadLabel(pm).toString(),
-                icon = ai.loadIcon(pm).toBitmap(96, 96).asImageBitmap(),
-                featured = ai.packageName in FEATURED,
+                pkg = info.packageName,
+                label = info.loadLabel(pm).toString(),
+                icon = info.loadIcon(pm).toBitmap(96, 96).asImageBitmap(),
+                featured = info.packageName in FEATURED,
             )
         }
         .sortedWith { a, b -> collator.compare(a.label, b.label) }

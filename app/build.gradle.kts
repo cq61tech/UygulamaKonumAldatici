@@ -16,9 +16,28 @@ android {
         versionName = "0.4.0"
     }
 
+    // İmza anahtarı depoda tutulmaz; CI ortam değişkenlerinden okunur.
+    // Anahtar yoksa (yerel derleme) debug anahtarıyla imzalanır.
+    val keystorePath: String? = System.getenv("KEYSTORE_PATH")
+    signingConfigs {
+        if (keystorePath != null) {
+            create("release") {
+                storeFile = file(keystorePath)
+                storePassword = System.getenv("KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("KEY_ALIAS")
+                keyPassword = System.getenv("KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
+            if (keystorePath != null) signingConfig = signingConfigs.getByName("release")
+        }
+        debug {
+            // Aynı anahtarla imzalanınca yeni sürüm eskisinin üstüne kurulabilir
+            if (keystorePath != null) signingConfig = signingConfigs.getByName("release")
         }
     }
 
@@ -54,8 +73,8 @@ dependencies {
     implementation("com.wireguard.android:tunnel:1.0.20260102")
 }
 
-// libxposed 102 kütüphaneleri compileSdk 37 ister, kullandığımız Android Gradle Plugin (8.7.3) ise
-// en çok 35'i destekliyor. Bu kontrol sadece derleme zamanı bilgisidir; çalışma zamanını etkilemez.
+// libxposed 102 kütüphaneleri compileSdk 37 gerektirir, Android Gradle Plugin 8.7.3 ise en fazla 35'i
+// destekler. Bu kontrol yalnızca derleme zamanı bilgisidir, çalışma zamanını etkilemez.
 tasks.configureEach {
     if (name.startsWith("check") && name.endsWith("AarMetadata")) {
         enabled = false

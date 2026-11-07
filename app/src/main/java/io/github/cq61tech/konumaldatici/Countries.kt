@@ -1,8 +1,8 @@
 package io.github.cq61tech.konumaldatici
 
 /**
- * Ülke profili: Aşama 3'te hook'lar bu verileri (SIM, operatör, saat dilimi, konum) birlikte döndürecek.
- * Tutarlılık için her ülke tek pakettir.
+ * Ülke profili. SIM, operatör, saat dilimi ve konum bir arada tutulur;
+ * hook'lar bunları birbiriyle tutarlı biçimde döndürür.
  */
 data class Country(
     val code: String,

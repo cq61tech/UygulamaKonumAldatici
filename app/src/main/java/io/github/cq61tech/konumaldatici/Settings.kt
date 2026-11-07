@@ -9,7 +9,7 @@ import androidx.compose.runtime.setValue
 
 enum class ThemeMode { SYSTEM, LIGHT, DARK, AMOLED }
 
-/** Uygulama ayarları. Aşama 3'te modül tarafıyla paylaşım (remote prefs) buraya bağlanacak. */
+/** Uygulama ayarları. Hook'larla paylaşılan değerler ModuleBridge üzerinden yazılır. */
 class AppSettings(context: Context) {
     private val sp = context.applicationContext.getSharedPreferences("settings", Context.MODE_PRIVATE)
 

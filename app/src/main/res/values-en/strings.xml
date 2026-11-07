@@ -10,8 +10,6 @@
     <string name="banner_text">Authoritarian laws mean more loopholes and more risk.</string>
 
     <string name="home_status_title">Module status</string>
-    <string name="home_status_pending">Not connected yet</string>
-    <string name="home_status_pending_desc">The hook engine arrives in Stage 3. UI only for now.</string>
     <string name="home_version">Version %1$s (%2$d)</string>
     <string name="home_system_title">System</string>
 
@@ -27,8 +25,6 @@
     <string name="val_unreadable">Unreadable</string>
     <string name="val_unknown">Unknown</string>
     <string name="val_zygisk_hint">Shown once LSPosed connects</string>
-    <string name="val_found">Found</string>
-    <string name="val_not_found">Not found (may be hidden)</string>
     <string name="root_none">Not detected</string>
     <string name="root_su">su found (type unknown)</string>
 
@@ -38,14 +34,9 @@
     <string name="vpn_state_off">Exposed. Everyone can see you.</string>
     <string name="vpn_state_connecting">Stamping the passport…</string>
     <string name="vpn_state_on">Border crossed. Welcome, stranger.</string>
-    <string name="vpn_provider">Provider</string>
-    <string name="provider_proton">Proton (WireGuard)</string>
-    <string name="provider_custom">Custom config</string>
-    <string name="provider_own">My own server</string>
     <string name="vpn_info_country">Country</string>
     <string name="vpn_info_ip">IP</string>
     <string name="vpn_info_protocol">Protocol</string>
-    <string name="vpn_preview_note">Preview: the VPN engine arrives in Stage 4. Only the animations are real for now.</string>
 
     <string name="apps_search">Search apps</string>
     <string name="apps_featured">Featured</string>

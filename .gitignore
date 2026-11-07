@@ -10,3 +10,10 @@ captures/
 *.apk
 *.jks
 *.keystore
+
+# WireGuard profilleri ve imza anahtarları asla depoya girmemeli
+*.conf
+*.jks
+*.keystore
+*.p12
+local.properties

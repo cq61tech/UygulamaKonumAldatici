@@ -10,8 +10,6 @@
     <string name="banner_text">Otoriter yasalar, daha fazla açık ve risk demektir</string>
 
     <string name="home_status_title">Modül durumu</string>
-    <string name="home_status_pending">Henüz bağlanmadı</string>
-    <string name="home_status_pending_desc">Hook motoru Aşama 3\'te geliyor. Şimdilik sadece arayüz.</string>
     <string name="home_version">Sürüm %1$s (%2$d)</string>
     <string name="home_system_title">Sistem</string>
 
@@ -27,8 +25,6 @@
     <string name="val_unreadable">Okunamadı</string>
     <string name="val_unknown">Bilinmiyor</string>
     <string name="val_zygisk_hint">LSPosed bağlanınca görünür</string>
-    <string name="val_found">Bulundu</string>
-    <string name="val_not_found">Bulunamadı (gizli olabilir)</string>
     <string name="root_none">Tespit edilemedi</string>
     <string name="root_su">su bulundu (tür belirsiz)</string>
 
@@ -38,14 +34,9 @@
     <string name="vpn_state_off">Korumasız. Yani herkes seni görüyor.</string>
     <string name="vpn_state_connecting">Pasaporta damga basılıyor…</string>
     <string name="vpn_state_on">Sınır geçildi. Hoş geldin, yabancı.</string>
-    <string name="vpn_provider">Sağlayıcı</string>
-    <string name="provider_proton">Proton (WireGuard)</string>
-    <string name="provider_custom">Özel config</string>
-    <string name="provider_own">Kendi sunucum</string>
     <string name="vpn_info_country">Ülke</string>
     <string name="vpn_info_ip">IP</string>
     <string name="vpn_info_protocol">Protokol</string>
-    <string name="vpn_preview_note">Önizleme: VPN motoru Aşama 4\'te bağlanacak. Şu an sadece animasyonlar gerçek.</string>
 
     <string name="apps_search">Uygulama ara</string>
     <string name="apps_featured">Öne çıkanlar</string>
