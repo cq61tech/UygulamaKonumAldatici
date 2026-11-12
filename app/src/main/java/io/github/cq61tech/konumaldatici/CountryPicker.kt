@@ -38,11 +38,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 
-/**
- * Ülke seçme sayfası.
- * [defaultCountry] verilirse en üstte "Varsayılan ülkeyi kullan" satırı çıkar (uygulama bazlı seçim için).
- * [onPick] null döndürürse varsayılan seçilmiş demektir.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CountrySheet(

@@ -62,7 +62,6 @@ class HookEntry : XposedModule() {
         val log: Boolean,
     )
 
-    /** Uzak tercihleri her çağrıda değil, yarım saniyede bir okuyan küçük önbellek. */
     private inner class Cfg(private val pkg: String) {
         @Volatile
         private var snap: Snap? = null
@@ -113,7 +112,6 @@ class HookEntry : XposedModule() {
 
     override fun onPackageLoaded(param: PackageLoadedParam) {
         if (!param.isFirstPackage) return
-        // Aynı süreçte iki kez çağrılırsa ikinci kez hook kurma
         if (!installed.compareAndSet(false, true)) return
 
         val pkg = param.packageName
@@ -142,7 +140,6 @@ class HookEntry : XposedModule() {
         }
     }
 
-    /** İlk kullanımda bir kez, ayrı iş parçacığında günlüğe yazar. */
     private fun note(s: Snap, key: String) {
         if (!s.log) return
         val first = synchronized(logged) { logged.add(key) }
@@ -153,15 +150,10 @@ class HookEntry : XposedModule() {
             try {
                 log(Log.INFO, TAG, msg)
             } catch (t: Throwable) {
-                // yoksay
             }
         }
     }
 
-    /**
-     * Katman açık ve uygulama seçiliyse [value] döndürür, değilse orijinal metodu çalıştırır.
-     * Hook kendi içinde yeniden tetiklenirse hep orijinale düşer.
-     */
     private inline fun spoof(
         cfg: Cfg,
         layer: (Snap) -> Boolean,
@@ -186,10 +178,7 @@ class HookEntry : XposedModule() {
         return if (done) result else proceed()
     }
 
-    // ------------------------------------------------------------------ Konum
-
     private fun hookLocation(cfg: Cfg, pkg: String) {
-        // Her uygulama için sabit, küçük bir sapma (yaklaşık 150 m)
         val h = pkg.hashCode()
         val dLat = (((h and 0xFF) - 128) / 128.0) * 0.0015
         val dLon = ((((h shr 8) and 0xFF) - 128) / 128.0) * 0.0015
@@ -220,7 +209,6 @@ class HookEntry : XposedModule() {
             }
         }
 
-        // Son bilinen konum yoksa seçili ülkeden bir tane üret
         val lastKnown = LocationManager::class.java.getDeclaredMethod(
             "getLastKnownLocation",
             String::class.java,
@@ -244,8 +232,6 @@ class HookEntry : XposedModule() {
             }
         }
     }
-
-    // ------------------------------------------------------- SIM / operatör
 
     private fun hookTelephony(cfg: Cfg) {
         for (m in TelephonyManager::class.java.declaredMethods) {
@@ -281,8 +267,6 @@ class HookEntry : XposedModule() {
         }
     }
 
-    // ------------------------------------------------------------ Saat dilimi
-
     private fun hookTimezone(cfg: Cfg) {
         val getDefault = TimeZone::class.java.getDeclaredMethod("getDefault")
         hook(getDefault).intercept { chain ->
@@ -303,9 +287,6 @@ class HookEntry : XposedModule() {
         }
     }
 
-    // ------------------------------------------------------------ VPN gizleme
-
-    /** Uygulama ağın VPN olduğunu sorarsa "hayır" der. */
     private fun hookVpnHide(cfg: Cfg) {
         val intType = Int::class.javaPrimitiveType
 
@@ -330,8 +311,6 @@ class HookEntry : XposedModule() {
             }
         }
     }
-
-    // ------------------------------------------------------------ Bölge / dil
 
     private fun hookLocale(cfg: Cfg) {
         val plain = Locale::class.java.getDeclaredMethod("getDefault")

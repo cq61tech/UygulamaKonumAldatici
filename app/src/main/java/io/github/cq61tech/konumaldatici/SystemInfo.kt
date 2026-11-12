@@ -42,14 +42,12 @@ object SystemInfo {
                 else -> v
             }
         } catch (e: Throwable) {
-            // dosya okunamadı, komutu dene
         }
         try {
             val p = Runtime.getRuntime().exec(arrayOf("getenforce"))
             val out = p.inputStream.bufferedReader().readText().trim()
             if (out.isNotEmpty()) return out
         } catch (e: Throwable) {
-            // yoksay
         }
         return ctx.getString(R.string.val_unreadable)
     }

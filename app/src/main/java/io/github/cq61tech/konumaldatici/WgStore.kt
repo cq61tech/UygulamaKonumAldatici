@@ -7,7 +7,6 @@ import com.wireguard.config.Config
 import java.io.ByteArrayInputStream
 import java.io.File
 
-/** İçe aktarılmış bir WireGuard profili. Dosya uygulamanın özel klasöründe tutulur. */
 class WgProfile(val id: String, val country: String, val text: String)
 
 object WgStore {
@@ -28,14 +27,12 @@ object WgStore {
                 }
             }
 
-    /** Dosyayı doğrular ve kaydeder. Geçersizse null döner. */
     fun import(ctx: Context, uri: Uri): WgProfile? {
         return try {
             val text = ctx.contentResolver.openInputStream(uri)
                 ?.bufferedReader()
                 ?.use { it.readText() }
                 ?: return null
-            // Biçimi kütüphaneyle doğrula (geçersizse istisna fırlatır)
             Config.parse(ByteArrayInputStream(text.toByteArray()))
 
             val fromPeer = PEER_LABEL.find(text)?.destructured?.let { (cc, kind, n) -> "$cc-$kind-$n" }

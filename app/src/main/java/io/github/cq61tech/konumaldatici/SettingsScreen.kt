@@ -53,7 +53,6 @@ import kotlin.math.roundToInt
 
 private const val GITHUB_URL = "https://github.com/cq61tech/UygulamaKonumAldatici"
 
-/** Hazır ton örnekleri (renk çarkı üzerindeki derece) */
 private val HUE_PRESETS = listOf(0f, 25f, 45f, 130f, 175f, 215f, 255f, 285f, 330f)
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -119,7 +118,6 @@ fun SettingsScreen(settings: AppSettings, modifier: Modifier = Modifier) {
                     onChange = { settings.updateDynamic(it) },
                 )
 
-                // Monet kapalıyken kendi renk paletini seç
                 AnimatedVisibility(visible = !dynamicOn) {
                     Column(Modifier.padding(top = 16.dp)) {
                         Text(
@@ -171,7 +169,6 @@ fun SettingsScreen(settings: AppSettings, modifier: Modifier = Modifier) {
                     onChange = { settings.updateDockPill(it) },
                 )
 
-                // Alt ayar: dock seçenekleri
                 var expanded by remember { mutableStateOf(false) }
                 val arrow by animateFloatAsState(
                     targetValue = if (expanded) 180f else 0f,

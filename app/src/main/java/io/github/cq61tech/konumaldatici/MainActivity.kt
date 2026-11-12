@@ -66,7 +66,6 @@ class MainActivity : AppCompatActivity() {
         setContent {
             val dark = isDarkFor(settings.themeMode)
 
-            // Uygulama teması sistemden farklıysa durum/gezinme çubuğu simgeleri de uyum sağlasın
             DisposableEffect(dark) {
                 activity.enableEdgeToEdge(
                     statusBarStyle = SystemBarStyle.auto(
@@ -108,7 +107,6 @@ private fun AppRoot(settings: AppSettings) {
     val dockTotal = dockH + margin + navBottom
     val dockPadding = dockTotal + 16.dp
 
-    // Aşağı kaydırınca dock'u gizle, yukarı kaydırınca göster
     var dockVisible by remember { mutableStateOf(true) }
     LaunchedEffect(tab, settings.dockAutoHide) { dockVisible = true }
     val scrollConnection = remember {
@@ -133,7 +131,6 @@ private fun AppRoot(settings: AppSettings) {
     )
 
     CompositionLocalProvider(LocalDockPadding provides dockPadding) {
-        // Surface: yazıların varsayılan rengini temaya göre ayarlar (siyah kalmasın)
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = cs.background,
@@ -161,7 +158,6 @@ private fun AppRoot(settings: AppSettings) {
                     }
                 }
 
-                // Yüzen dock'un arkasında içeriğin yumuşakça solması için
                 if (pill) {
                     Box(
                         Modifier

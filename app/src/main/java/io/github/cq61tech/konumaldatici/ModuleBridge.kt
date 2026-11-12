@@ -10,12 +10,6 @@ import androidx.compose.runtime.setValue
 import io.github.libxposed.service.XposedService
 import io.github.libxposed.service.XposedServiceHelper
 
-/**
- * Uygulama tarafı: LSPosed ile konuşur.
- * - Servis bağlanınca framework bilgisini okur (ana ekrandaki durum kartı).
- * - Ayarları "uzak tercihler" olarak yazar; hook'lar hedef uygulamada bunları okur.
- * - Seçilen uygulamaları modül kapsamına eklemek için kullanıcıdan onay ister.
- */
 object ModuleBridge {
 
     class Info(
@@ -72,7 +66,6 @@ object ModuleBridge {
         }
     }
 
-    /** Tüm ayarları framework'ün uzak tercihlerine yazar. */
     fun pushAll() {
         val s = service ?: return
         val st = settings ?: return
@@ -90,11 +83,9 @@ object ModuleBridge {
             e.putBoolean(Keys.HOOK_LOG, st.hookLog)
             e.apply()
         } catch (t: Throwable) {
-            // Sessizce geç: servis o sırada kopmuş olabilir
         }
     }
 
-    /** Henüz kapsamda olmayan uygulamalar için LSPosed'dan onay ister. */
     fun requestScope(ctx: Context, packages: List<String>) {
         val s = service ?: return
         val current = info?.scope ?: emptyList()
@@ -125,7 +116,6 @@ object ModuleBridge {
                 }
             })
         } catch (t: Throwable) {
-            // yoksay
         }
     }
 }

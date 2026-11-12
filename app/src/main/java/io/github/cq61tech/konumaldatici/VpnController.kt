@@ -16,11 +16,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/**
- * Gerçek VPN: WireGuard tüneli, uygulama bazlı.
- * Tünele sadece verilen uygulamalar alınır (WireGuard'ın IncludedApplications ayarı),
- * diğer uygulamalar normal bağlantıyla devam eder.
- */
 object VpnController {
     var state by mutableStateOf(VpnState.Off)
         private set
@@ -39,13 +34,11 @@ object VpnController {
     private fun backend(ctx: Context): GoBackend =
         backend ?: GoBackend(ctx.applicationContext).also { backend = it }
 
-    /** Uygulama yeniden açıldığında tünel hâlâ çalışıyor mu? */
     fun syncRunning(ctx: Context) {
         try {
             val running = backend(ctx).runningTunnelNames.isNotEmpty()
             scope.launch { state = if (running) VpnState.On else VpnState.Off }
         } catch (t: Throwable) {
-            // yoksay
         }
     }
 
@@ -77,7 +70,6 @@ object VpnController {
                     backend(app).setState(tunnel, Tunnel.State.UP, cfg)
                 }
             }
-            // Şekil animasyonunun görünmesi için en az 2,5 saniye "bağlanıyor" kal
             val wait = 2500L - (SystemClock.elapsedRealtime() - started)
             if (wait > 0) delay(wait)
             result.onSuccess {

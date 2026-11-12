@@ -90,7 +90,6 @@ fun VpnScreen(settings: AppSettings, modifier: Modifier = Modifier) {
         withContext(Dispatchers.IO) { VpnController.syncRunning(ctx) }
     }
 
-    // Kullanılacak profil: seçili olan, yoksa hedef ülkeyle eşleşen, yoksa ilk profil
     val profile = profiles.firstOrNull { it.id == settings.vpnProfile }
         ?: profiles.firstOrNull { it.country == settings.defaultCountry }
         ?: profiles.firstOrNull()
@@ -316,11 +315,6 @@ private fun InfoRow(label: String, value: String) {
     }
 }
 
-/**
- * Büyük bağlan düğmesi.
- * Kapalı: daire. Bağlanıyor: Soft Burst → Cookie 9 → Pentagon → Pill → Sunny → Cookie 4 → Oval
- * şekilleri arasında dönüşerek döner. Bağlı: nefes alan kurabiye şekli.
- */
 @Composable
 private fun ConnectButton(state: VpnState, onClick: () -> Unit) {
     val cs = MaterialTheme.colorScheme
@@ -408,10 +402,8 @@ private fun ConnectButton(state: VpnState, onClick: () -> Unit) {
             val cx = size.width / 2f
             val cy = size.height / 2f
 
-            // Taban: daire ↔ kurabiye (bağlıyken)
             ShapeBank.mix(ShapeBank.circle, ShapeBank.cookie9, onW.value, base)
 
-            // Bağlanırken şekil dizisi arasında dönüşüm
             val cw = connW.value
             var rotation = 0f
             if (cw > 0.001f) {

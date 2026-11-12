@@ -9,7 +9,6 @@ import androidx.compose.runtime.setValue
 
 enum class ThemeMode { SYSTEM, LIGHT, DARK, AMOLED }
 
-/** Uygulama ayarları. Hook'larla paylaşılan değerler ModuleBridge üzerinden yazılır. */
 class AppSettings(context: Context) {
     private val sp = context.applicationContext.getSharedPreferences("settings", Context.MODE_PRIVATE)
 
@@ -22,30 +21,24 @@ class AppSettings(context: Context) {
     var dynamicColor by mutableStateOf(sp.getBoolean("dynamic", true))
         private set
 
-    /** -1 = varsayılan gökyüzü paleti, 0..360 = seçilen ton */
     var seedHue by mutableFloatStateOf(sp.getFloat("seed_hue", -1f))
         private set
 
     var hookLog by mutableStateOf(sp.getBoolean("hook_log", true))
         private set
 
-    /** VPN ve konum profili için varsayılan ülke (ülke kodu) */
     var defaultCountry by mutableStateOf(sp.getString("country", "US") ?: "US")
         private set
 
-    /** Dock: true = yüzen hap, false = ekranın altına oturan düz çubuk */
     var dockPill by mutableStateOf(sp.getBoolean("dock_pill", true))
         private set
 
-    /** Dock yüksekliği (dp) */
     var dockHeight by mutableIntStateOf(sp.getInt("dock_height", 72))
         private set
 
-    /** 0 = tam opak, 0.6 = en şeffaf */
     var dockTransparency by mutableFloatStateOf(sp.getFloat("dock_transparency", 0f))
         private set
 
-    /** 0 = köşeli, 1 = tam yuvarlak */
     var dockRoundness by mutableFloatStateOf(sp.getFloat("dock_roundness", 1f))
         private set
 
@@ -77,7 +70,6 @@ class AppSettings(context: Context) {
         sp.edit().putBoolean("dock_autohide", value).apply()
     }
 
-    /** Hangi katmanlar spooflansın (hook'lar bunları uzak tercihlerden okur) */
     var layerLocation by mutableStateOf(sp.getBoolean("layer_location", true))
         private set
 
@@ -114,7 +106,6 @@ class AppSettings(context: Context) {
         sync()
     }
 
-    /** Seçili WireGuard profilinin kimliği (örn. "US-FREE-3") */
     var vpnProfile by mutableStateOf(sp.getString("vpn_profile", "") ?: "")
         private set
 
@@ -160,7 +151,6 @@ class AppSettings(context: Context) {
         sp.edit().putStringSet("selected_apps", HashSet(apps)).apply()
     }
 
-    /** Uygulama başına ülke seçimi: "paket|ÜLKE" biçiminde saklanır. */
     fun loadAppCountries(): Map<String, String> =
         (sp.getStringSet("app_countries", emptySet()) ?: emptySet())
             .mapNotNull { entry ->

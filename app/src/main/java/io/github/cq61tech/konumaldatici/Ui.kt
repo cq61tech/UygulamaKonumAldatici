@@ -25,7 +25,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-/** Ekran açılırken kartların sırayla süzülerek gelmesi. */
 @Composable
 fun Appear(index: Int, content: @Composable () -> Unit) {
     var visible by remember { mutableStateOf(false) }
@@ -58,5 +57,4 @@ fun SectionCard(title: String, content: @Composable ColumnScope.() -> Unit) {
     }
 }
 
-/** Yüzen gezinme çubuğunun kapladığı alt boşluk; ekranlar içeriğin altını bu kadar boş bırakır. */
 val LocalDockPadding = compositionLocalOf { 0.dp }

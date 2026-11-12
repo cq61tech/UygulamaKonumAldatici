@@ -76,7 +76,6 @@ private fun BannerCard() {
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize(),
         )
-        // Yazının bulutların üstünde de okunması için alttan koyulaşan katman
         Box(
             Modifier
                 .fillMaxSize()

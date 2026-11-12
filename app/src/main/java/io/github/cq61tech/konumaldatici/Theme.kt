@@ -57,11 +57,9 @@ private val FallbackDark = darkColorScheme(
     surfaceContainerHighest = Color(0xFF34343A),
 )
 
-
 private fun hsl(h: Float, s: Float, l: Float): Color =
     Color.hsl(((h % 360f) + 360f) % 360f, s.coerceIn(0f, 1f), l.coerceIn(0f, 1f))
 
-/** Seçilen tondan (0..360) açık/koyu renk şeması üretir. */
 private fun schemeFromHue(h: Float, dark: Boolean): ColorScheme {
     val t = h + 60f
     return if (!dark) {

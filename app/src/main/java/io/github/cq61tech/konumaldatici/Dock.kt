@@ -58,12 +58,6 @@ data class DockItem(val label: Int, val icon: ImageVector)
 
 private val DockPad = 6.dp
 
-/**
- * Yüzen hap şeklinde gezinme çubuğu.
- * - Dokununca ilgili sekmeye geçer.
- * - Basılı tutup (veya yana sürükleyerek) kaydırınca büyüyen baloncuk parmağı takip eder,
- *   parmak kalkınca en yakın sekmeye oturur.
- */
 @Composable
 fun FloatingDock(
     items: List<DockItem>,
@@ -126,7 +120,6 @@ fun FloatingDock(
     val indicatorShape = RoundedCornerShape((height - DockPad * 2) / 2 * roundness)
     val barColor = (if (pill) cs.surfaceContainerHigh else cs.surfaceContainer)
         .copy(alpha = 1f - transparency)
-    // Şeffaflaştıkça gölgeyi de azalt
     val elevation = if (pill) 10.dp * (1f - transparency / 0.6f).coerceIn(0f, 1f) else 0.dp
 
     Box(
@@ -143,7 +136,6 @@ fun FloatingDock(
                     var tapped = false
                     var moved = false
 
-                    // Uzun basma süresi dolmadan: dokunuş mu, sürükleme mi?
                     val timedOut = withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) {
                         while (true) {
                             val ev = awaitPointerEvent()
@@ -166,7 +158,6 @@ fun FloatingDock(
                     }
                     if (!timedOut && !moved) return@awaitEachGesture
 
-                    // Baloncuk modu
                     if (timedOut) haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     fingerX = lastX
                     pressed = true
@@ -183,7 +174,6 @@ fun FloatingDock(
                 }
             },
     ) {
-        // Zemin
         Box(
             Modifier
                 .matchParentSize()
@@ -209,7 +199,6 @@ fun FloatingDock(
                 .fillMaxWidth()
                 .height(height)
         ) {
-            // Kayan seçim baloncuğu
             if (slotW > 0f) {
                 Box(
                     Modifier

@@ -70,7 +70,6 @@ data class AppItem(
     val featured: Boolean,
 )
 
-/** Sekme değişince kaybolmasın diye ekranın dışında tutulan durum. */
 class AppsState(private val settings: AppSettings) {
     var apps by mutableStateOf<List<AppItem>?>(null)
     var query by mutableStateOf("")
@@ -82,7 +81,6 @@ class AppsState(private val settings: AppSettings) {
 
     val selected = mutableStateListOf<String>().also { it.addAll(saved) }
 
-    /** Uygulama başına ülke (yoksa varsayılan ülke kullanılır) */
     val appCountry = mutableStateMapOf<String, String>().also { it.putAll(savedCountries) }
 
     private fun effectiveCountries(): Map<String, String> =
@@ -118,14 +116,12 @@ private val FEATURED = setOf(
     "com.facebook.katana",
 )
 
-/** Kök erişimini / LSPosed'ı algılayıp açılışta takılan uygulamalar: seçmeden önce uyarılır. */
 private val ROOT_DETECTING = setOf(
     "com.zhiliaoapp.musically",
     "com.ss.android.ugc.trill",
     "com.zhiliaoapp.musically.go",
 )
 
-/** Play Store ve Google Play hizmetleri listeden çıkarılır. */
 private fun isProtected(pkg: String): Boolean =
     pkg == "com.android.vending" ||
         pkg == "com.google.android.gsf" ||
@@ -328,7 +324,6 @@ fun AppsScreen(state: AppsState, settings: AppSettings, modifier: Modifier = Mod
             defaultCountry = defaultCountry,
             onPick = { code ->
                 if (code == null) state.appCountry.remove(pkg) else state.appCountry[pkg] = code
-                // Ülkesi seçilen uygulama otomatik seçili olsun
                 if (code != null && pkg !in state.selected && pkg !in ROOT_DETECTING) state.selected.add(pkg)
                 sheetPkg = null
             },

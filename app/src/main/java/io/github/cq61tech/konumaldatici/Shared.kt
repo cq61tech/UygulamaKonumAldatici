@@ -1,6 +1,5 @@
 package io.github.cq61tech.konumaldatici
 
-/** Uygulama ile hook'lar arasında paylaşılan uzak ayar anahtarları. */
 object Keys {
     const val GROUP = "konum"
 
