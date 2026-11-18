@@ -6,6 +6,7 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -45,6 +46,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.os.LocaleListCompat
@@ -320,11 +322,29 @@ fun SettingsScreen(settings: AppSettings, modifier: Modifier = Modifier) {
 
         Appear(5) {
             SectionCard(stringResource(R.string.settings_about)) {
-                Text(
-                    text = stringResource(R.string.app_name) + "  •  " +
-                        stringResource(R.string.home_version, version.first, version.second),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(14.dp),
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.app_logo),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clip(RoundedCornerShape(16.dp)),
+                    )
+                    Column {
+                        Text(
+                            text = stringResource(R.string.app_name),
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                        Text(
+                            text = stringResource(R.string.home_version, version.first, version.second),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
                 Text(
                     text = stringResource(R.string.about_license),
                     style = MaterialTheme.typography.bodyMedium,

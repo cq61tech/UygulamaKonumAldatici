@@ -1,5 +1,7 @@
 # Konum Aldatıcı / Location Spoofer
 
+<p align="center"><img src="docs/icon.png" width="96" alt="Konum Aldatıcı"></p>
+
 [Türkçe](#türkçe) · [English](#english)
 
 ---
