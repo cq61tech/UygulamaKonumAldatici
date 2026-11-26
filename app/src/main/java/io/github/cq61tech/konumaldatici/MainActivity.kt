@@ -82,6 +82,8 @@ class MainActivity : AppCompatActivity() {
 
             AppTheme(settings.themeMode, settings.dynamicColor, settings.seedHue) {
                 AppRoot(settings)
+            
+                io.github.cq61tech.konumaldatici.ui.CqStorePromptDialog()
             }
         }
     }
